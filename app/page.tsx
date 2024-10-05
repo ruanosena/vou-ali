@@ -1,18 +1,18 @@
 import prisma from "@/lib/prisma";
-import { Local } from "./components/Local";
-import { AddLocal } from "./components/AddLocal";
 import { Fragment } from "react";
+import { Local } from "./components/Local";
 
 async function getLocais() {
   const locais = prisma.local.findMany({
-    where: { Ponto: { isNot: null } },
-    include: { Ponto: { select: { titulo: true } } },
+    where: { Ponto: { every: { publicado: true } } },
+    include: { Ponto: { select: { titulo: true, id: true } } },
   });
   return locais;
 }
 
 export default async function Home() {
   const locais = await getLocais();
+  console.log(locais);
 
   return (
     <Fragment>
@@ -37,6 +37,10 @@ export default async function Home() {
             />
           </div>
         </div>
+
+        {locais.map(({ id, endereco, lat, lng, Ponto }) => (
+          <Local key={id} endereco={endereco} lat={lat} lng={lng} ponto={Ponto} />
+        ))}
 
         <section className="flex min-h-screen items-center bg-white">
           <div className="relative mx-auto max-w-7xl flex-col px-4 sm:static sm:px-6 lg:px-8">

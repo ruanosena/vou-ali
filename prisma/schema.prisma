@@ -19,7 +19,7 @@ model Local {
   endereco String
   lat      Decimal
   lng      Decimal
-  Ponto    Ponto?
+  Ponto    Ponto[]
 }
 
 model Ponto {
@@ -31,6 +31,7 @@ model Ponto {
   enderecoInternet String?  @map("endereco_internet")
   telefone         String?
   social           Social[]
+  publicado        Boolean  @default(false)
 }
 
 model Social {
