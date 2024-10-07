@@ -27,11 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <MapsAPI>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} font-[family-name:var(--font-geist-sans)] antialiased`}
-        >
-          {children}
-        </body>
+        <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>{children}</body>
       </MapsAPI>
     </html>
   );

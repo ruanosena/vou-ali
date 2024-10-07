@@ -1,6 +1,7 @@
 import { Dispatch, MutableRefObject, useEffect } from "react";
 
 import { Action, DrawResult, DrawingActionKind, Overlay, Snapshot, State, isCircle, isRectangle } from "../types/maps";
+import { useOverlayGeometry } from "@/contexts/overlayGeometryContext";
 
 export default function reducer(state: State, action: Action) {
   switch (action.type) {
@@ -18,7 +19,6 @@ export default function reducer(state: State, action: Action) {
         } else if (isRectangle(geometry)) {
           snapshot.bounds = geometry.getBounds()?.toJSON();
         }
-        console.log("update", snapshot);
 
         return {
           ...overlay,
@@ -47,7 +47,6 @@ export default function reducer(state: State, action: Action) {
       } else if (isRectangle(overlay)) {
         snapshot.bounds = overlay.getBounds()?.toJSON();
       }
-      console.log("create", snapshot);
 
       return {
         past: [...state.past, state.now],
@@ -69,7 +68,6 @@ export default function reducer(state: State, action: Action) {
     case DrawingActionKind.UNDO: {
       const last = state.past.slice(-1)[0];
 
-      console.log("UNDO", state.now, last);
       if (!last) return state;
 
       return {
@@ -85,7 +83,6 @@ export default function reducer(state: State, action: Action) {
     case DrawingActionKind.REDO: {
       const next = state.future.slice(-1)[0];
 
-      console.log("REDO", state.now, next);
       if (!next) return state;
 
       return {
@@ -159,6 +156,8 @@ export function useOverlaySnapshots(
   state: State,
   overlaysShouldUpdateRef: MutableRefObject<boolean>,
 ) {
+  const { setOverlays } = useOverlayGeometry();
+
   useEffect(() => {
     if (!map || !state.now) return;
 
@@ -175,6 +174,8 @@ export function useOverlaySnapshots(
       } else if (isRectangle(overlay.geometry)) {
         overlay.geometry.setBounds(bounds ?? null);
       }
+
+      setOverlays(state.now);
 
       overlaysShouldUpdateRef.current = true;
     }

@@ -5,6 +5,7 @@ import { useMap } from "@vis.gl/react-google-maps";
 import reducer, { useDrawingManagerEvents, useOverlaySnapshots } from "../../lib/undo-redo";
 
 import { DrawingActionKind } from "../../types/maps";
+import { useOverlayGeometry } from "@/contexts/overlayGeometryContext";
 
 interface Props {
   drawingManager: google.maps.drawing.DrawingManager | null;
@@ -12,10 +13,11 @@ interface Props {
 
 export const UndoRedoControl = ({ drawingManager }: Props) => {
   const map = useMap();
+  const { overlays } = useOverlayGeometry();
 
   const [state, dispatch] = useReducer(reducer, {
     past: [],
-    now: [],
+    now: overlays,
     future: [],
   });
 

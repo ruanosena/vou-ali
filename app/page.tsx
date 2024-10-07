@@ -2,7 +2,12 @@ import prisma from "@/lib/prisma";
 import { Fragment } from "react";
 import { Local } from "./components/Local";
 import { MapCenter } from "./components/MapCenter";
-import DrawingMap from "./components/DrawingMap";
+import { redirect } from "next/navigation";
+
+async function getCentros() {
+  const centros = prisma.area.findMany();
+  return centros;
+}
 
 async function getLocais() {
   const locais = prisma.local.findMany({
@@ -13,14 +18,16 @@ async function getLocais() {
 }
 
 export default async function Home() {
-  const locais = await getLocais();
+  const centros = await getCentros();
+
+  if (!centros.length) {
+    redirect("/add");
+  }
 
   return (
     <Fragment>
       <main>
         {/* <MapCenter /> */}
-
-        <DrawingMap />
 
         <div className="relative flex min-h-screen flex-col items-center justify-center">
           <label
@@ -43,9 +50,9 @@ export default async function Home() {
           </div>
         </div>
 
-        {locais.map(({ id, endereco, lat, lng, Ponto }) => (
+        {/* {locais.map(({ id, endereco, lat, lng, Ponto }) => (
           <Local key={id} endereco={endereco} lat={lat} lng={lng} ponto={Ponto} />
-        ))}
+        ))} */}
 
         <section className="flex min-h-screen items-center bg-white">
           <div className="relative mx-auto max-w-7xl flex-col px-4 sm:static sm:px-6 lg:px-8">

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-function ControlPanel() {
+export function ControlPanel() {
   return (
     <div className="control-panel h-24">
       <h3>Drawing Tools Example</h3>
@@ -20,5 +20,3 @@ function ControlPanel() {
     </div>
   );
 }
-
-export default React.memo(ControlPanel);

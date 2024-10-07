@@ -48,3 +48,20 @@ export function isCircle(overlay: OverlayGeometry): overlay is google.maps.Circl
 export function isRectangle(overlay: OverlayGeometry): overlay is google.maps.Rectangle {
   return (overlay as google.maps.Rectangle).getBounds !== undefined;
 }
+
+export interface Circulo {
+  radius: number;
+  center: google.maps.LatLngLiteral;
+}
+
+export interface Retangulo {
+  bounds: google.maps.LatLngBoundsLiteral;
+}
+
+export function isCirculo(area: Snapshot): area is Circulo {
+  return area.radius != undefined && area.center != undefined;
+}
+
+export function isRetangulo(area: Snapshot): area is Retangulo {
+  return area.bounds != undefined;
+}
