@@ -1,22 +1,27 @@
 import prisma from "@/lib/prisma";
 import { Fragment } from "react";
 import { Local } from "./components/Local";
+import { MapCenter } from "./components/MapCenter";
+import DrawingMap from "./components/DrawingMap";
 
 async function getLocais() {
   const locais = prisma.local.findMany({
     where: { Ponto: { every: { publicado: true } } },
-    include: { Ponto: { select: { titulo: true, id: true } } },
+    include: { Ponto: { select: { nome: true, id: true } } },
   });
   return locais;
 }
 
 export default async function Home() {
   const locais = await getLocais();
-  console.log(locais);
 
   return (
     <Fragment>
       <main>
+        {/* <MapCenter /> */}
+
+        <DrawingMap />
+
         <div className="relative flex min-h-screen flex-col items-center justify-center">
           <label
             htmlFor="destino"
@@ -56,7 +61,7 @@ export default async function Home() {
             <div>
               <div className="mt-10">
                 <a
-                  href="#"
+                  href="/ponto/add"
                   className="inline-block rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-center font-medium text-white hover:bg-indigo-700"
                 >
                   Informe seu negócio

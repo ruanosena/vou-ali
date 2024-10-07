@@ -14,20 +14,44 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
+model Area {
+  id    Int      @id @default(autoincrement())
+  nome  String
+  sigla String
+  tipo  AreaTipo
+  raio  BigInt?
+  lat   Decimal?
+  lng   Decimal?
+  leste Decimal?
+  norte Decimal?
+  sul   Decimal?
+  oeste Decimal?
+  Local Local[]
+
+  @@map("Centro")
+}
+
+enum AreaTipo {
+  CIRCULO
+  RETANGULO
+}
+
 model Local {
   id       String  @id @default(uuid())
   endereco String
   lat      Decimal
   lng      Decimal
   Ponto    Ponto[]
+  centro   Area    @relation(fields: [centroId], references: [id])
+  centroId Int     @map("centro_id")
 }
 
 model Ponto {
   id               String   @id @default(cuid())
-  titulo           String
+  nome             String
   pseudonimos      String[] @map("pseudonimo")
   local            Local    @relation(fields: [localId], references: [id])
-  localId          String   @unique @map("local_id")
+  localId          String   @map("local_id")
   enderecoInternet String?  @map("endereco_internet")
   telefone         String?
   social           Social[]
@@ -35,7 +59,7 @@ model Ponto {
 }
 
 model Social {
-  id      Int        @id @default(autoincrement())
+  id      String     @id @default(uuid())
   nome    SocialNome
   link    String
   Ponto   Ponto      @relation(fields: [pontoId], references: [id])
