@@ -1,11 +1,13 @@
 "use client";
 import React from "react";
-import { ControlPosition, Map, MapControl } from "@vis.gl/react-google-maps";
+import dynamic from "next/dynamic";
+import { ControlPosition, Map } from "@vis.gl/react-google-maps";
+const DynamicMapControl = dynamic(() => import("@vis.gl/react-google-maps").then((m) => m.MapControl), { ssr: false });
 
 import { UndoRedoControl } from "./UndoRedoControl";
 import { useDrawingManager } from "../../hooks/useDrawingManager";
-import ControlPanel from "./ControlPanel";
 import { POSITION } from "./MapCenter";
+import ControlPanel from "./ControlPanel";
 
 const DrawingMap = () => {
   const drawingManager = useDrawingManager();
@@ -22,9 +24,9 @@ const DrawingMap = () => {
 
       <ControlPanel />
 
-      <MapControl position={ControlPosition.TOP_CENTER}>
-        <UndoRedoControl drawingManager={drawingManager} />
-      </MapControl>
+      <DynamicMapControl position={ControlPosition.TOP_CENTER}>
+        <UndoRedoControl drawingManager={drawingManager} />;
+      </DynamicMapControl>
     </>
   );
 };
