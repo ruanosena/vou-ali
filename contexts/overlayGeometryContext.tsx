@@ -9,14 +9,18 @@ type OverlayGeometryProviderProps = {
 
 interface OverlayGeometryProviderState {
   snapshots: Snapshot[];
+  remove: (index: number) => void;
   overlays: Overlay[];
   setOverlays: (overlays: Overlay[]) => void;
+  clear: () => void;
 }
 
 const initialState: OverlayGeometryProviderState = {
   snapshots: [],
+  remove: () => null,
   overlays: [],
   setOverlays: () => null,
+  clear: () => null,
 };
 
 const OverlayGeometryProviderContext = createContext<OverlayGeometryProviderState>(initialState);
@@ -46,8 +50,21 @@ export function OverlayGeometryProvider({
 
   const value = {
     snapshots,
+    remove: (index: number) => {
+      setSnapshots((prevState) => {
+        const snapshots = prevState.slice(0, index).concat(prevState.slice(index + 1));
+        localStorage.setItem(storageKey, JSON.stringify(snapshots, null, 2));
+        return snapshots;
+      });
+      setOverlays((prevState) => prevState.slice(0, index).concat(prevState.slice(index + 1)));
+    },
     overlays,
     setOverlays,
+    clear: () => {
+      localStorage.removeItem(storageKey);
+      setSnapshots([]);
+      setOverlays([]);
+    },
   };
 
   return (
