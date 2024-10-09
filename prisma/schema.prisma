@@ -16,10 +16,10 @@ datasource db {
 
 model Area {
   id    Int      @id @default(autoincrement())
-  nome  String
-  sigla String
+  nome  String   @unique
+  slug  String   @unique
   tipo  AreaTipo
-  raio  BigInt?
+  raio  Float?
   lat   Decimal?
   lng   Decimal?
   leste Decimal?

@@ -16,6 +16,9 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+Começe adicionando um área central ao selecionar uma forma geométrica e desenha-la no mapa, então após feito,
+continue e dê um nome para cada uma, ao terminar você pode adicionar mais ou navegar para página inicial.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
