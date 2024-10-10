@@ -27,7 +27,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <MapsAPI>
-        <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>{children}</body>
+        <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
+          <main className="min-h-screen">{children}</main>
+          <footer className="p-2 text-center">
+            Feito com &#x2763; por{" "}
+            <a className="underline underline-offset-2" target="_blank" href="https://github.com/ruanosena">
+              ruanosena
+            </a>
+          </footer>
+        </body>
       </MapsAPI>
     </html>
   );

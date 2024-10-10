@@ -10,7 +10,7 @@ export async function addCentro(formData: FormData) {
   rawData.slug = slugify(rawData.nome, { lower: true });
   if (isCirculo(rawData)) {
     rawData.tipo = "CIRCULO";
-    rawData.raio = parseFloat(String(rawData.raio));
+    rawData.raio = Number(rawData.raio);
     rawData.lat = new Prisma.Decimal(rawData.lat);
     rawData.lng = new Prisma.Decimal(rawData.lng);
   } else if (isRetangulo(rawData)) {
