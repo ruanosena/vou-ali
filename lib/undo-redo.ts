@@ -1,6 +1,6 @@
 import { Dispatch, MutableRefObject, useEffect } from "react";
 
-import { Action, DrawResult, DrawingActionKind, Overlay, Snapshot, State, isCircle, isRectangle } from "../types/maps";
+import { Action, DrawResult, DrawingActionKind, Overlay, Snapshot, State, isMarker } from "../types/maps";
 
 export default function reducer(state: State, action: Action) {
   switch (action.type) {
@@ -12,14 +12,9 @@ export default function reducer(state: State, action: Action) {
         const snapshot: Snapshot = {};
         const { geometry } = overlay;
 
-        if (isCircle(geometry)) {
-          snapshot.center = geometry.getCenter()?.toJSON();
-          snapshot.radius = geometry.getRadius();
-        } else if (isRectangle(geometry)) {
-          snapshot.bounds = geometry.getBounds()?.toJSON();
+        if (isMarker(geometry)) {
+          snapshot.position = geometry.getPosition()?.toJSON();
         }
-        console.log("update", snapshot);
-
         return {
           ...overlay,
           snapshot,
@@ -41,13 +36,9 @@ export default function reducer(state: State, action: Action) {
 
       const snapshot: Snapshot = {};
 
-      if (isCircle(overlay)) {
-        snapshot.center = overlay.getCenter()?.toJSON();
-        snapshot.radius = overlay.getRadius();
-      } else if (isRectangle(overlay)) {
-        snapshot.bounds = overlay.getBounds()?.toJSON();
+      if (isMarker(overlay)) {
+        snapshot.position = overlay.getPosition()?.toJSON();
       }
-      console.log("create", snapshot);
 
       return {
         past: [...state.past, state.now],
@@ -69,7 +60,6 @@ export default function reducer(state: State, action: Action) {
     case DrawingActionKind.UNDO: {
       const last = state.past.slice(-1)[0];
 
-      console.log("UNDO", state.now, last);
       if (!last) return state;
 
       return {
@@ -85,7 +75,6 @@ export default function reducer(state: State, action: Action) {
     case DrawingActionKind.REDO: {
       const next = state.future.slice(-1)[0];
 
-      console.log("REDO", state.now, next);
       if (!next) return state;
 
       return {
@@ -131,12 +120,8 @@ export function useDrawingManagerEvents(
       "overlaycomplete",
       (drawResult: DrawResult) => {
         switch (drawResult.type) {
-          case google.maps.drawing.OverlayType.CIRCLE:
-            ["center_changed", "radius_changed"].forEach((eventName) => addUpdateListener(eventName, drawResult));
-            break;
-
-          case google.maps.drawing.OverlayType.RECTANGLE:
-            ["bounds_changed", "dragstart", "dragend"].forEach((eventName) => addUpdateListener(eventName, drawResult));
+          case google.maps.drawing.OverlayType.MARKER:
+            ["dragend"].forEach((eventName) => addUpdateListener(eventName, drawResult));
 
             break;
         }
@@ -167,13 +152,10 @@ export function useOverlaySnapshots(
 
       overlay.geometry.setMap(map);
 
-      const { radius, center, bounds } = overlay.snapshot;
+      const { position } = overlay.snapshot;
 
-      if (isCircle(overlay.geometry)) {
-        overlay.geometry.setRadius(radius ?? 0);
-        overlay.geometry.setCenter(center ?? null);
-      } else if (isRectangle(overlay.geometry)) {
-        overlay.geometry.setBounds(bounds ?? null);
+      if (isMarker(overlay.geometry)) {
+        overlay.geometry.setPosition(position);
       }
 
       overlaysShouldUpdateRef.current = true;

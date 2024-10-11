@@ -1,8 +1,10 @@
+import { MapPlaceMark } from "@/app/components/MapPlaceMark";
 import { PhotoIcon, UserCircleIcon } from "@heroicons/react/24/solid";
 
 export default function AddPonto() {
   return (
-    <div className="bg-white">
+    <div className="bg-foreground">
+      <MapPlaceMark />
       <div className="container mx-auto">
         <form>
           <div className="space-y-12">

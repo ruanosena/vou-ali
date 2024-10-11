@@ -1,4 +1,4 @@
-export type OverlayGeometry = google.maps.Rectangle | google.maps.Circle;
+export type OverlayGeometry = google.maps.Marker;
 
 export interface DrawResult {
   type: google.maps.drawing.OverlayType;
@@ -6,9 +6,7 @@ export interface DrawResult {
 }
 
 export interface Snapshot {
-  radius?: number;
-  center?: google.maps.LatLngLiteral;
-  bounds?: google.maps.LatLngBoundsLiteral;
+  position?: google.maps.LatLngLiteral;
 }
 
 export interface Overlay {
@@ -41,10 +39,6 @@ export interface SetOverlayAction {
 
 export type Action = ActionWithTypeOnly | SetOverlayAction;
 
-export function isCircle(overlay: OverlayGeometry): overlay is google.maps.Circle {
-  return (overlay as google.maps.Circle).getCenter !== undefined;
-}
-
-export function isRectangle(overlay: OverlayGeometry): overlay is google.maps.Rectangle {
-  return (overlay as google.maps.Rectangle).getBounds !== undefined;
+export function isMarker(overlay: OverlayGeometry): overlay is google.maps.Marker {
+  return (overlay as google.maps.Marker).getPosition !== undefined;
 }

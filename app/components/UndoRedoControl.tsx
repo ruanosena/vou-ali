@@ -1,4 +1,3 @@
-"use client";
 import React, { useReducer, useRef } from "react";
 import { useMap } from "@vis.gl/react-google-maps";
 
@@ -30,14 +29,22 @@ export const UndoRedoControl = ({ drawingManager }: Props) => {
   useOverlaySnapshots(map, state, overlaysShouldUpdateRef);
 
   return (
-    <div className="drawing-history">
-      <button onClick={() => dispatch({ type: DrawingActionKind.UNDO })} disabled={!state.past.length}>
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
+    <div className="drawing-history m-[5px] flex shadow-md">
+      <button
+        className="group flex size-[2.625rem] items-center justify-center bg-white sm:size-12"
+        onClick={() => dispatch({ type: DrawingActionKind.UNDO })}
+        disabled={!state.past.length}
+      >
+        <svg className="size-6 group-disabled:opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
           <path d="M280-200v-80h284q63 0 109.5-40T720-420q0-60-46.5-100T564-560H312l104 104-56 56-200-200 200-200 56 56-104 104h252q97 0 166.5 63T800-420q0 94-69.5 157T564-200H280Z" />
         </svg>
       </button>
-      <button onClick={() => dispatch({ type: DrawingActionKind.REDO })} disabled={!state.future.length}>
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24">
+      <button
+        className="group flex size-[2.625rem] items-center justify-center bg-white sm:size-12"
+        onClick={() => dispatch({ type: DrawingActionKind.REDO })}
+        disabled={!state.future.length}
+      >
+        <svg className="size-6 group-disabled:opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
           <path d="M396-200q-97 0-166.5-63T160-420q0-94 69.5-157T396-640h252L544-744l56-56 200 200-200 200-56-56 104-104H396q-63 0-109.5 40T240-420q0 60 46.5 100T396-280h284v80H396Z" />
         </svg>
       </button>

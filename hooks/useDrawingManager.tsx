@@ -1,4 +1,3 @@
-"use client";
 import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { useEffect, useState } from "react";
 
@@ -14,17 +13,13 @@ export function useDrawingManager(initialValue: google.maps.drawing.DrawingManag
     // https://developers.google.com/maps/documentation/javascript/reference/drawing
     const newDrawingManager = new drawing.DrawingManager({
       map,
-      drawingMode: google.maps.drawing.OverlayType.CIRCLE,
+      drawingMode: null,
       drawingControl: true,
       drawingControlOptions: {
-        position: google.maps.ControlPosition.TOP_CENTER,
-        drawingModes: [google.maps.drawing.OverlayType.CIRCLE, google.maps.drawing.OverlayType.RECTANGLE],
+        position: google.maps.ControlPosition.TOP_LEFT,
+        drawingModes: [google.maps.drawing.OverlayType.MARKER],
       },
-      circleOptions: {
-        editable: true,
-      },
-      rectangleOptions: {
-        editable: true,
+      markerOptions: {
         draggable: true,
       },
     });

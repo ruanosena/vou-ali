@@ -1,0 +1,7 @@
+.gmnoprint {
+  @apply w-[5.25rem] sm:w-24;
+}
+
+.gmnoprint button[role="menuitemradio"] {
+  @apply !flex size-[2.625rem] items-center justify-center sm:size-12;
+}
