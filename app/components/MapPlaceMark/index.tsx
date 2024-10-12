@@ -3,10 +3,10 @@ import { Fragment, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { ControlPosition, useMap, Map } from "@vis.gl/react-google-maps";
 const DynamicMapControl = dynamic(() => import("@vis.gl/react-google-maps").then((m) => m.MapControl), { ssr: false });
-import { PlaceAutocomplete } from "@/app/components/PlaceAutoComplete";
 import { UndoRedoControl } from "../UndoRedoControl";
 import { useDrawingManager } from "@/hooks/useDrawingManager";
 import "./styles.css";
+import { AutocompleteCustom } from "../AutocompleteCustom";
 
 export function MapPlaceMark() {
   const drawingManager = useDrawingManager();
@@ -33,7 +33,7 @@ export function MapPlaceMark() {
       />
       <DynamicMapControl position={ControlPosition.TOP_RIGHT}>
         <div className="autocomplete-control m-[5px]">
-          <PlaceAutocomplete onPlaceSelect={setSelectedPlace} />
+          <AutocompleteCustom onPlaceSelect={setSelectedPlace} />
         </div>
       </DynamicMapControl>
 

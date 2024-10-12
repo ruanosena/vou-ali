@@ -13,7 +13,7 @@ export function useDrawingManager(initialValue: google.maps.drawing.DrawingManag
     // https://developers.google.com/maps/documentation/javascript/reference/drawing
     const newDrawingManager = new drawing.DrawingManager({
       map,
-      drawingMode: null,
+      drawingMode: google.maps.drawing.OverlayType.MARKER,
       drawingControl: true,
       drawingControlOptions: {
         position: google.maps.ControlPosition.TOP_LEFT,
