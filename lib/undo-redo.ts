@@ -1,6 +1,7 @@
 import { Dispatch, MutableRefObject, useEffect } from "react";
 
 import { Action, DrawResult, DrawingActionKind, Overlay, Snapshot, State, isMarker } from "../types/maps";
+import { useMarker } from "@/contexts/MarkerContext";
 
 export default function reducer(state: State, action: Action) {
   switch (action.type) {
@@ -43,7 +44,7 @@ export default function reducer(state: State, action: Action) {
       return {
         past: [...state.past, state.now],
         now: [
-          ...state.now,
+          // ...state.now, // Allow only one Overlay in 'state.now'
           {
             type: action.payload.type,
             geometry: action.payload.overlay,
@@ -144,6 +145,8 @@ export function useOverlaySnapshots(
   state: State,
   overlaysShouldUpdateRef: MutableRefObject<boolean>,
 ) {
+  const { setMarkerPosition } = useMarker();
+
   useEffect(() => {
     if (!map || !state.now) return;
 
@@ -156,6 +159,7 @@ export function useOverlaySnapshots(
 
       if (isMarker(overlay.geometry)) {
         overlay.geometry.setPosition(position);
+        setMarkerPosition(position!);
       }
 
       overlaysShouldUpdateRef.current = true;

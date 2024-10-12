@@ -1,14 +1,16 @@
+import { useMarker } from "@/contexts/MarkerContext";
 import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
 import { useEffect, useState } from "react";
 
 export function useDrawingManager(initialValue: google.maps.drawing.DrawingManager | null = null) {
   const map = useMap();
   const drawing = useMapsLibrary("drawing");
+  const { mode } = useMarker();
 
   const [drawingManager, setDrawingManager] = useState<google.maps.drawing.DrawingManager | null>(initialValue);
 
   useEffect(() => {
-    if (!map || !drawing) return;
+    if (mode === "static" || !map || !drawing) return;
 
     // https://developers.google.com/maps/documentation/javascript/reference/drawing
     const newDrawingManager = new drawing.DrawingManager({
@@ -29,7 +31,7 @@ export function useDrawingManager(initialValue: google.maps.drawing.DrawingManag
     return () => {
       newDrawingManager.setMap(null);
     };
-  }, [drawing, map]);
+  }, [drawing, map, mode]);
 
   return drawingManager;
 }

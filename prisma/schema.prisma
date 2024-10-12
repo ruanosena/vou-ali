@@ -15,15 +15,21 @@ datasource db {
 }
 
 model Local {
-  id       String  @id @default(uuid())
-  endereco String
-  lat      Decimal
-  lng      Decimal
-  Ponto    Ponto[]
+  id                String   @id @default(uuid())
+  enderecoFormatado String   @map("endereco_formatado")
+  lat               Decimal
+  lng               Decimal
+  norte             Decimal?
+  sul               Decimal?
+  leste             Decimal?
+  oeste             Decimal?
+  Ponto             Ponto[]
 }
 
 model Ponto {
   id               String   @id @default(cuid())
+  lat              Decimal
+  lng              Decimal
   nome             String
   slug             String
   pseudonimos      String[] @map("pseudonimo")
