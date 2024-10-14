@@ -32,7 +32,7 @@ const initialState: MarkerProviderState = {
   setMode: () => null,
 };
 
-const MarkProviderContext = createContext<MarkerProviderState>(initialState);
+const MarkerProviderContext = createContext<MarkerProviderState>(initialState);
 
 export function MarkerProvider({
   children,
@@ -83,11 +83,12 @@ export function MarkerProvider({
             } else if (status === "ZERO_RESULTS") {
               // 'latlng' em local remoto não retornou nenhum endereço detalhado
               setLocal({ enderecoFormatado: "", ...marker.position! });
+              // local recebe a posição do marcador de mapa
             } else {
               setLocal(undefined);
             }
           });
-        }, previousMarker.current && 5000),
+        }, previousMarker.current && 2500),
       );
     }
     previousMarker.current = marker;
@@ -112,14 +113,14 @@ export function MarkerProvider({
   };
 
   return (
-    <MarkProviderContext.Provider {...props} value={value}>
+    <MarkerProviderContext.Provider {...props} value={value}>
       {children}
-    </MarkProviderContext.Provider>
+    </MarkerProviderContext.Provider>
   );
 }
 
 export const useMarker = () => {
-  const context = useContext(MarkProviderContext);
+  const context = useContext(MarkerProviderContext);
 
   if (context === undefined) throw new Error("useMark must be used within a MarkProvider");
 

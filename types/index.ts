@@ -7,3 +7,11 @@ export interface Local {
   leste?: number;
   oeste?: number;
 }
+
+export enum SocialNome {
+  WhatsApp = "WHATSAPP",
+  Instagram = "INSTAGRAM",
+  Facebook = "FACEBOOK",
+  Telegram = "TELEGRAM",
+  "E-mail" = "EMAIL",
+}

@@ -14,6 +14,13 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
+model Usuario {
+  id    Int     @id @default(autoincrement())
+  nome  String?
+  email String  @unique
+  Ponto Ponto[]
+}
+
 model Local {
   id                String   @id @default(uuid())
   enderecoFormatado String   @map("endereco_formatado")
@@ -39,6 +46,8 @@ model Ponto {
   telefone         String?
   social           Social[]
   publicado        Boolean  @default(false)
+  usuario          Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId        Int      @map("usuario_id")
 }
 
 model Social {

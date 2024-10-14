@@ -108,7 +108,7 @@ export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
   return (
     <div className="autocomplete-container text-background">
       <input
-        className="w-full max-w-56 sm:max-w-80"
+        className="w-full max-w-56 rounded-sm sm:max-w-80"
         value={inputValue}
         onInput={(event: FormEvent<HTMLInputElement>) => onInputChange(event)}
         placeholder="Pesquise um local"
