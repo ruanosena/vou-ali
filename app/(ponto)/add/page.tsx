@@ -4,42 +4,14 @@ import { useCallback, useReducer, useRef, useState } from "react";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { MAX_PSEUDONIMOS, SOCIAL_LINKS_PLACEHOLDERS } from "@/lib/constants";
 import { SocialNome } from "@/types";
-
-type SocialEntry = ReturnType<typeof Object.entries<SocialNome>>[number];
-
-const initState = { available: Object.entries(SocialNome), used: [] } as {
-  available: SocialEntry[];
-  used: SocialEntry[];
-};
-
-const enum REDUCER_ACTION_TYPE {
-  USE,
-  REMOVE,
-}
-
-type ReducerAction = {
-  type: REDUCER_ACTION_TYPE;
-  payload: number;
-};
-
-const reducer = (prevState: typeof initState, action: ReducerAction): typeof initState => {
-  const newAvailable = [...prevState.available];
-  const newUsed = [...prevState.used];
-  switch (action.type) {
-    case REDUCER_ACTION_TYPE.USE:
-      // remove from available and add to used
-      newUsed.push(...newAvailable.splice(action.payload, 1));
-      return { available: newAvailable, used: newUsed };
-    case REDUCER_ACTION_TYPE.REMOVE:
-      // remove from used and add back to available
-      newAvailable.push(...newUsed.splice(action.payload, 1));
-      return { available: newAvailable, used: newUsed };
-    default:
-      throw new Error("Not well handled reducer action from 'SocialNome'");
-  }
-};
+import { createPonto } from "@/lib/actions";
+import { useMarker } from "@/contexts/MarkerContext";
+import { initState, reducer, REDUCER_ACTION_TYPE } from "@/lib/slices/socialSlice";
+import { AddPontoButton } from "@/app/components/AddPontoButton";
 
 export default function AddPonto() {
+  const formRef = useRef<HTMLFormElement>(null);
+
   const tagInputRef = useRef<HTMLInputElement>(null);
   const [tag, setTag] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -47,6 +19,8 @@ export default function AddPonto() {
   const telDDDRef = useRef<HTMLInputElement>(null);
   const telPrefixRef = useRef<HTMLInputElement>(null);
   const telSuffixRef = useRef<HTMLInputElement>(null);
+
+  const { clear, local, marker } = useMarker();
 
   const [socialState, socialDispatch] = useReducer(reducer, initState);
 
@@ -101,7 +75,53 @@ export default function AddPonto() {
 
   return (
     <div className="bg-foreground text-background">
-      <form className="container mx-auto py-12">
+      <form
+        ref={formRef}
+        action={async (formData) => {
+          try {
+            formData.append("lat", String(marker.position!.lat));
+            formData.append("lng", String(marker.position!.lng));
+            formData.append("local", JSON.stringify(local));
+
+            formData.set("pseudonimos", JSON.stringify(tags));
+
+            const socialNomes = formData.getAll("socialNome");
+            formData.delete("socialNome");
+            const socialLinks = formData.getAll("socialLink");
+            formData.delete("socialLink");
+            const social = socialNomes.map((nome, index) => ({ nome, link: socialLinks[index] }));
+            formData.append("social", JSON.stringify(social));
+
+            const formDataObj = Object.fromEntries(formData.entries());
+
+            if (formDataObj.tel1 && formDataObj.tel2 && formDataObj.tel3) {
+              const telefoneFormatado = `(${formData.get("tel1")}) ${formData.get("tel2")}-${formData.get("tel3")}`;
+              formData.append("telefoneFormatado", telefoneFormatado);
+              const telefone = `${formData.get("telDDI")}${formData.get("tel1")}${formData.get("tel2")}${formData.get("tel3")}`;
+              formData.append("telefone", telefone);
+            }
+            formData.delete("telDDI");
+            formData.delete("tel1");
+            formData.delete("tel2");
+            formData.delete("tel3");
+
+            const nome = formDataObj.nomeUsuario ? formData.get("nomeUsuario") : null;
+            formData.delete("nomeUsuario");
+            const email = formData.get("email");
+            formData.delete("email");
+            const usuario = { nome, email };
+            formData.append("usuario", JSON.stringify(usuario));
+
+            await createPonto(formData);
+            clear();
+            formRef.current?.reset();
+            setTags([]);
+          } catch (error) {
+            console.error(error);
+          }
+        }}
+        className="container mx-auto py-12"
+      >
         <div className="space-y-12">
           <div className="border-b border-gray-900/10 px-4 pb-12">
             <h2 className="text-lg font-semibold leading-7 text-gray-900">Informações pessoais</h2>
@@ -110,7 +130,7 @@ export default function AddPonto() {
             </p>
 
             <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-              <div className="sm:col-span-3">
+              <div className="sm:col-span-4">
                 <label htmlFor="nome-usuario" className="block font-medium leading-6 text-gray-900">
                   Nome
                 </label>
@@ -120,21 +140,6 @@ export default function AddPonto() {
                     name="nomeUsuario"
                     type="text"
                     autoComplete="given-name"
-                    className="block w-full rounded-md border-0 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-lg sm:leading-6"
-                  />
-                </div>
-              </div>
-
-              <div className="sm:col-span-3">
-                <label htmlFor="sobrenome-usuario" className="block font-medium leading-6 text-gray-900">
-                  Sobrenome
-                </label>
-                <div className="mt-2">
-                  <input
-                    id="sobrenome-usuario"
-                    name="sobrenomeUsuario"
-                    type="text"
-                    autoComplete="family-name"
                     className="block w-full rounded-md border-0 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-lg sm:leading-6"
                   />
                 </div>
@@ -241,13 +246,13 @@ export default function AddPonto() {
               </div>
 
               <div className="sm:col-span-4">
-                <label htmlFor="endereco-internet" className="block font-medium leading-6 text-gray-900">
-                  Endereço na internet (site)
+                <label htmlFor="site" className="block font-medium leading-6 text-gray-900">
+                  Site
                 </label>
                 <div className="mt-2">
                   <input
-                    id="endereco-internet"
-                    name="enderecoInternet"
+                    id="site"
+                    name="site"
                     type="url"
                     autoComplete="url"
                     placeholder="https://www.exemplo.com.br"
@@ -345,13 +350,14 @@ export default function AddPonto() {
                       <input
                         type="text"
                         defaultValue={key}
-                        className="block max-w-36 rounded-md border-0 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 invalid:ring-red-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 disabled:text-gray-500 sm:text-lg sm:leading-6 lg:max-w-48"
-                        disabled
+                        className="block max-w-36 rounded-md border-0 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 invalid:ring-red-500 read-only:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-lg sm:leading-6 lg:max-w-48"
+                        readOnly
                       />
+                      <input name="socialNome" type="hidden" value={value} />
 
                       <div className="flex flex-1 gap-x-2">
                         <input
-                          name={`social[${index}][link]`}
+                          name="socialLink"
                           type="url"
                           autoComplete="url"
                           placeholder={SOCIAL_LINKS_PLACEHOLDERS[value]}
@@ -369,7 +375,6 @@ export default function AddPonto() {
                   ))}
                   {!!socialState.available.length && (
                     <select
-                      name={`social[${socialState.used.length}][nome]`}
                       defaultValue={""}
                       className="block rounded-md border-0 pl-2 pr-8 text-gray-900 shadow-sm ring-1 ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:pl-3 sm:pr-10 sm:text-lg sm:leading-6"
                       onChange={handleSocialAdd}
@@ -390,16 +395,8 @@ export default function AddPonto() {
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-end gap-x-6">
-          <button type="button" className="rounded-sm px-3 py-2 font-semibold leading-6 text-gray-900">
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            className="rounded-md bg-indigo-600 px-3 py-2 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            Enviar
-          </button>
+        <div className="mt-6 text-end">
+          <AddPontoButton />
         </div>
       </form>
     </div>

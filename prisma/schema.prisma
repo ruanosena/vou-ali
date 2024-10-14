@@ -18,7 +18,7 @@ model Usuario {
   id    Int     @id @default(autoincrement())
   nome  String?
   email String  @unique
-  Ponto Ponto[]
+  ponto Ponto[]
 }
 
 model Local {
@@ -30,31 +30,34 @@ model Local {
   sul               Decimal?
   leste             Decimal?
   oeste             Decimal?
-  Ponto             Ponto[]
+  ponto             Ponto[]
+
+  @@unique(name: "posicao", [lat, lng])
 }
 
 model Ponto {
-  id               String   @id @default(cuid())
-  lat              Decimal
-  lng              Decimal
-  nome             String
-  slug             String
-  pseudonimos      String[] @map("pseudonimo")
-  local            Local    @relation(fields: [localId], references: [id])
-  localId          String   @map("local_id")
-  enderecoInternet String?  @map("endereco_internet")
-  telefone         String?
-  social           Social[]
-  publicado        Boolean  @default(false)
-  usuario          Usuario  @relation(fields: [usuarioId], references: [id])
-  usuarioId        Int      @map("usuario_id")
+  id                String   @id @default(cuid())
+  lat               Decimal
+  lng               Decimal
+  nome              String
+  slug              String
+  pseudonimos       String[] @map("pseudonimo")
+  local             Local    @relation(fields: [localId], references: [id])
+  localId           String   @map("local_id")
+  site              String?
+  telefone          String?
+  telefoneFormatado String?  @map("telefone_formatado")
+  social            Social[]
+  publicado         Boolean  @default(false)
+  usuario           Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId         Int      @map("usuario_id")
 }
 
 model Social {
   id      String     @id @default(uuid())
   nome    SocialNome
   link    String
-  Ponto   Ponto      @relation(fields: [pontoId], references: [id])
+  ponto   Ponto      @relation(fields: [pontoId], references: [id])
   pontoId String     @map("ponto_id")
 }
 

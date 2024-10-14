@@ -41,6 +41,7 @@ export function MapPlaceMark({ className, ...props }: PropsWithChildren<MapProps
         defaultZoom={4}
         defaultCenter={{ lat: -14.4095261, lng: -51.31668 }}
         gestureHandling={"greedy"}
+        mapId={process.env.NEXT_PUBLIC_MAP_ID}
         disableDefaultUI
         {...props}
       />
