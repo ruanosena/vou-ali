@@ -24,3 +24,13 @@ export class Timer {
     this.active = false;
   }
 }
+
+export function getBoundingBox(latitude: number, longitude: number, radius = 0.1): google.maps.LatLngBoundsLiteral {
+  // Create a bounding box with sides ~10km (default) away from the coordinates
+  return {
+    north: latitude + radius,
+    south: latitude - radius,
+    east: longitude + radius,
+    west: longitude - radius,
+  };
+}

@@ -40,3 +40,10 @@ export enum SocialNome {
   Telegram = "TELEGRAM",
   "E-mail" = "EMAIL",
 }
+
+export type GeoCookieValue = {
+  ip: string;
+  country: string;
+  lat: number;
+  lng: number;
+};

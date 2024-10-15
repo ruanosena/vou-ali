@@ -1,19 +1,27 @@
 import prisma from "@/lib/prisma";
+import { GeoCookieValue } from "@/types";
+import { cookies } from "next/headers";
 import { Fragment } from "react";
+import { SearchPonto } from "./components/SearchPonto";
 
 async function getLocais() {
   const locais = prisma.local.findMany({
-    where: { Ponto: { every: { publicado: true } } },
-    include: { Ponto: { select: { nome: true, id: true } } },
+    where: { ponto: { every: { publicado: true } } },
+    include: { ponto: { select: { nome: true, id: true } } },
   });
   return locais;
 }
 
 export default async function Home() {
   // const locais = await getLocais();
+  const geoCookie = cookies().get("geo");
+  let geo: GeoCookieValue | undefined;
+  if (geoCookie) geo = JSON.parse(decodeURIComponent(geoCookie.value));
 
   return (
     <Fragment>
+      <SearchPonto location={geo && { lat: geo.lat, lng: geo.lng }} />
+
       <section className="flex min-h-screen items-center bg-foreground">
         <div className="relative mx-auto max-w-7xl flex-col px-4 sm:static sm:px-6 lg:px-8">
           <div className="sm:max-w-lg">

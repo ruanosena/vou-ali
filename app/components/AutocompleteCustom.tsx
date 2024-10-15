@@ -1,6 +1,7 @@
-"use client";
-import React, { useEffect, useState, useCallback, FormEvent, useRef } from "react";
+// "use client"; // not used since parent is already a client boundary
+import React, { useEffect, useState, useCallback, FormEvent } from "react";
 import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
+import { useGeo } from "@/contexts/GeoContext";
 
 interface Props {
   onPlaceSelect: (place: google.maps.places.PlaceResult | null) => void;
@@ -25,25 +26,9 @@ export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
 
   const [inputValue, setInputValue] = useState<string>("");
 
-  const [locationBias, setLocationBias] = useState<google.maps.LatLngBoundsLiteral>();
+  const { locationBias } = useGeo();
 
   const [fetchDebounce, setFetchDebounce] = useState<NodeJS.Timeout>();
-
-  useEffect(() => {
-    if ("geolocation" in navigator) {
-      // Retrieve latitude & longitude coordinates from `navigator.geolocation` Web API
-      navigator.geolocation.getCurrentPosition(({ coords }) => {
-        const { latitude, longitude } = coords;
-        // Create a bounding box with sides ~15km away from the coordinates
-        setLocationBias({
-          north: latitude + 0.15,
-          south: latitude - 0.15,
-          east: longitude + 0.15,
-          west: longitude - 0.15,
-        });
-      });
-    }
-  }, []);
 
   useEffect(() => {
     if (!places || !map) return;
