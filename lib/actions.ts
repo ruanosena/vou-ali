@@ -8,7 +8,7 @@ import { Local, Ponto, Usuario } from "@/types";
 export async function createPonto(formData: FormData) {
   const rawData = Object.fromEntries(formData.entries()) as unknown as Ponto;
   rawData.slug = slugify(rawData.nome, { lower: true });
-  rawData.pseudonimos = JSON.parse(rawData.pseudonimos as unknown as string);
+  rawData.apelidos = JSON.parse(rawData.apelidos as unknown as string);
   rawData.local = JSON.parse(rawData.local as unknown as string);
   rawData.social = JSON.parse(rawData.social as unknown as string);
   rawData.usuario = JSON.parse(rawData.usuario as unknown as string);
@@ -18,18 +18,18 @@ export async function createPonto(formData: FormData) {
   const local = await createOrGetLocal(rawData.local);
   const usuario = await createOrGetUsuario(rawData.usuario);
 
-  const ponto = await prisma.ponto.create({
+  await prisma.ponto.create({
     data: {
       nome: data.nome,
       slug: data.slug,
       lat: new Prisma.Decimal(data.lat),
       lng: new Prisma.Decimal(data.lng),
+      apelidos: { createMany: { data: data.apelidos } },
       social: { createMany: { data: data.social } },
       localId: local.id,
       usuarioId: usuario.id,
     },
   });
-  console.log(ponto);
 }
 
 async function createOrGetLocal(rawData: Local) {

@@ -1,6 +1,6 @@
 import { SocialNome } from "@/types";
 
-export const MAX_PSEUDONIMOS = 5;
+export const MAX_APELIDOS = 5;
 
 export const SOCIAL_LINKS_PLACEHOLDERS: Record<SocialNome, string> = {
   EMAIL: "mailto:email@provedor.com.br",

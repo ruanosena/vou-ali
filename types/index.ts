@@ -13,7 +13,7 @@ export interface Ponto {
   lng: number;
   nome: string;
   slug: string;
-  pseudonimos: string[];
+  apelidos: Apelido[];
   local: Local;
   site?: string | null;
   telefone?: string | null;
@@ -26,6 +26,10 @@ export interface Ponto {
 export interface Usuario {
   nome?: string | null;
   email: string;
+}
+
+export interface Apelido {
+  apelido: string;
 }
 
 export interface Social {

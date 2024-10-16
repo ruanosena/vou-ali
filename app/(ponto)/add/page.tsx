@@ -2,7 +2,7 @@
 import { MapPlaceMark } from "@/app/components/MapPlaceMark";
 import { useCallback, useReducer, useRef, useState } from "react";
 import { XMarkIcon } from "@heroicons/react/20/solid";
-import { MAX_PSEUDONIMOS, SOCIAL_LINKS_PLACEHOLDERS } from "@/lib/constants";
+import { MAX_APELIDOS, SOCIAL_LINKS_PLACEHOLDERS } from "@/lib/constants";
 import { SocialNome } from "@/types";
 import { createPonto } from "@/lib/actions";
 import { useMarker } from "@/contexts/MarkerContext";
@@ -54,7 +54,7 @@ export default function AddPonto() {
     let value = tag.trim();
     if (!value) return;
     setTags((prevState) => {
-      if (prevState.length === MAX_PSEUDONIMOS) return prevState;
+      if (prevState.length === MAX_APELIDOS) return prevState;
       const prevStateLowerCase = prevState.map((tag) => tag.toLowerCase());
       if (prevStateLowerCase.includes(value.toLowerCase())) return prevState;
       setTag("");
@@ -83,7 +83,8 @@ export default function AddPonto() {
             formData.append("lng", String(marker.position!.lng));
             formData.append("local", JSON.stringify(local));
 
-            formData.set("pseudonimos", JSON.stringify(tags));
+            const apelido = tags.map((tag) => ({ apelido: tag }));
+            formData.set("apelidos", JSON.stringify(apelido));
 
             const socialNomes = formData.getAll("socialNome");
             formData.delete("socialNome");
@@ -199,7 +200,7 @@ export default function AddPonto() {
               </div>
 
               <div className="col-span-full">
-                <label htmlFor="pseudonimos" className="block font-medium leading-6 text-gray-900">
+                <label htmlFor="apelidos" className="block font-medium leading-6 text-gray-900">
                   Nomes complementares
                 </label>
                 <p className="leading-6 text-gray-600">Adicione até 5 nomes complementares</p>
@@ -228,8 +229,8 @@ export default function AddPonto() {
                   ))}
                   <input
                     ref={tagInputRef}
-                    id="pseudonimos"
-                    name="pseudonimos"
+                    id="apelidos"
+                    name="apelidos"
                     type="text"
                     autoComplete="organization"
                     placeholder="Barraca do Caldo de Cana"
