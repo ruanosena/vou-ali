@@ -22,7 +22,7 @@ export default async function Home() {
     <Fragment>
       <SearchPonto location={geo && { lat: geo.lat, lng: geo.lng }} />
 
-      <section className="flex min-h-screen items-center bg-foreground">
+      <section className="flex min-h-screen items-center bg-background">
         <div className="relative mx-auto max-w-7xl flex-col px-4 sm:static sm:px-6 lg:px-8">
           <div className="sm:max-w-lg">
             <h1 className="text-xl font-bold tracking-tight text-gray-900 sm:text-3xl">

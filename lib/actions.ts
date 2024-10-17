@@ -16,7 +16,7 @@ export async function createPonto(formData: FormData) {
   const data: Ponto = rawData;
 
   const local = await createOrGetLocal(rawData.local);
-  const usuario = await createOrGetUsuario(rawData.usuario);
+  const usuario = await createOrGetUsuario(rawData.usuario!);
 
   await prisma.ponto.create({
     data: {

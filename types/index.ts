@@ -1,14 +1,16 @@
 export interface Local {
+  id: string;
   enderecoFormatado: string;
   lat: number;
   lng: number;
-  norte?: number;
-  sul?: number;
-  leste?: number;
-  oeste?: number;
+  norte?: number | null;
+  sul?: number | null;
+  leste?: number | null;
+  oeste?: number | null;
 }
 
 export interface Ponto {
+  id: string;
   lat: number;
   lng: number;
   nome: string;
@@ -20,7 +22,7 @@ export interface Ponto {
   telefoneFormatado?: string | null;
   social: Social[];
   publicado: boolean;
-  usuario: Usuario;
+  usuario?: Usuario;
 }
 
 export interface Usuario {

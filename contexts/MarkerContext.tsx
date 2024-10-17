@@ -73,6 +73,7 @@ export function MarkerProvider({
             if (status === "OK") {
               const viewport = result![0].geometry.viewport.toJSON();
               setLocal({
+                id: "",
                 enderecoFormatado: result![0].formatted_address,
                 ...result![0].geometry.location.toJSON(),
                 norte: viewport.north,
@@ -82,7 +83,7 @@ export function MarkerProvider({
               });
             } else if (status === "ZERO_RESULTS") {
               // 'latlng' em local remoto não retornou nenhum endereço detalhado
-              setLocal({ enderecoFormatado: "", ...marker.position! });
+              setLocal({ id: "", enderecoFormatado: "", ...marker.position! });
               // local recebe a posição do marcador de mapa
             } else {
               setLocal(undefined);

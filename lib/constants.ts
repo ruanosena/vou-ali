@@ -9,3 +9,9 @@ export const SOCIAL_LINKS_PLACEHOLDERS: Record<SocialNome, string> = {
   WHATSAPP: "https://api.whatsapp.com/send?phone=######",
   TELEGRAM: "https://t.me/+#####",
 };
+
+export const INITIAL_SUGGESTIONS_CHAR = "_";
+
+export const PONTOS_RESULTS_TIMES = 3;
+
+export const MAX_SUGGESTIONS = 7;

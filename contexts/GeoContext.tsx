@@ -60,6 +60,7 @@ export function GeoProvider({ children, ...props }: GeoProviderProps) {
   }, []);
 
   useEffect(() => {
+    // FIXME: remover restrição location default Brasil
     if (location.lat === initialState.location.lat && location.lng === initialState.location.lng) return;
     const bBox = mapsGetBoundingBox(location.lat, location.lng);
     if (bBox) setLocationBias(bBox);

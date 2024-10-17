@@ -1,5 +1,7 @@
+import { INITIAL_SUGGESTIONS_CHAR, MAX_SUGGESTIONS, PONTOS_RESULTS_TIMES } from "@/lib/constants";
 import prisma from "@/lib/prisma";
 import { getDistanceFromLatLonInKm } from "@/lib/utils";
+import { Ponto } from "@/types";
 import { Prisma } from "@prisma/client";
 
 export async function GET(req: Request, { params }: { params: { location: string } }) {
@@ -21,25 +23,76 @@ export async function GET(req: Request, { params }: { params: { location: string
   const { searchParams } = new URL(req.url);
   const query = searchParams.get("q");
 
-  if (!query) {
+  if (query === null || !/(?:(?![×Þß÷þø])[-_'0-9a-zÀ-ÿ])+/i.test(query)) {
+    // doesn't have a character (letter|number) with accents or not
     return Response.json({ error: "No search found" }, { status: 404 });
   }
 
-  // Finds 30 occurrences of the query
-  const pontos = await prisma.ponto.findMany({
-    take: 30,
+  let pontos: Awaited<ReturnType<typeof queryByBoundingBox>> | Awaited<ReturnType<typeof queryByTextInput>> | undefined;
+  if (query === INITIAL_SUGGESTIONS_CHAR) {
+    let bounds: google.maps.LatLngBoundsLiteral | undefined;
+    try {
+      bounds = {
+        north: new Prisma.Decimal(searchParams.get("north")?.trim() ?? "").toNumber(),
+        south: new Prisma.Decimal(searchParams.get("south")?.trim() ?? "").toNumber(),
+        east: new Prisma.Decimal(searchParams.get("east")?.trim() ?? "").toNumber(),
+        west: new Prisma.Decimal(searchParams.get("west")?.trim() ?? "").toNumber(),
+      };
+    } catch {
+      return Response.json({ error: "No search found" }, { status: 404 });
+    }
+    // Finds 21 occurrences within the area
+    pontos = await queryByBoundingBox(bounds);
+  } else {
+    // Finds 21 occurrences of the query
+    pontos = await queryByTextInput(query);
+  }
+
+  // Sorts by straight-line distance and takes the first 7
+  const data = sortByDistance(normalizeData(pontos), lat, lng).slice(0, 7);
+  console.dir(data, { depth: null });
+
+  return Response.json({ data }, { status: 200 });
+}
+
+async function queryByBoundingBox(bBox: google.maps.LatLngBoundsLiteral, resultTimes = PONTOS_RESULTS_TIMES) {
+  return prisma.ponto.findMany({
+    take: MAX_SUGGESTIONS * resultTimes,
+    include: {
+      social: true,
+      apelidos: true,
+      local: true,
+    },
+    where: {
+      publicado: true,
+      AND: [
+        { lat: { lte: bBox.north }, lng: { lte: bBox.east } },
+        { lat: { gte: bBox.south }, lng: { gte: bBox.west } },
+      ],
+    },
+  });
+}
+
+async function queryByTextInput(input: string, resultTimes = PONTOS_RESULTS_TIMES) {
+  return prisma.ponto.findMany({
+    take: MAX_SUGGESTIONS * resultTimes,
+    include: {
+      social: true,
+      apelidos: true,
+      local: true,
+    },
     where: {
       publicado: true,
       OR: [
         {
           nome: {
-            contains: query,
+            contains: input,
             mode: "insensitive",
           },
         },
         {
           slug: {
-            contains: query,
+            contains: input,
             mode: "insensitive",
           },
         },
@@ -47,7 +100,7 @@ export async function GET(req: Request, { params }: { params: { location: string
           apelidos: {
             some: {
               apelido: {
-                contains: query,
+                contains: input,
                 mode: "insensitive",
               },
             },
@@ -56,14 +109,27 @@ export async function GET(req: Request, { params }: { params: { location: string
       ],
     },
   });
+}
 
-  // Sorts by straight-line distance and takes the first 10
-  const data = pontos
-    .map((p) => ({ ...p, lat: p.lat.toNumber(), lng: p.lat.toNumber() }))
-    .sort(
-      (a, b) => getDistanceFromLatLonInKm(a.lat, a.lng, lat, lng) - getDistanceFromLatLonInKm(b.lat, b.lng, lat, lng),
-    )
-    .slice(0, 10);
+function normalizeData(data: Awaited<ReturnType<typeof queryByTextInput>>) {
+  return data.map((p) => ({
+    ...p,
+    lat: p.lat.toNumber(),
+    lng: p.lat.toNumber(),
+    local: {
+      ...p.local,
+      lat: p.local.lat.toNumber(),
+      lng: p.local.lng.toNumber(),
+      norte: p.local.norte?.toNumber(),
+      oeste: p.local.oeste?.toNumber(),
+      leste: p.local.leste?.toNumber(),
+      sul: p.local.sul?.toNumber(),
+    },
+  })) as Ponto[];
+}
 
-  return Response.json({ query, data }, { status: 200 });
+function sortByDistance(data: Ponto[], lat: number, lng: number) {
+  return data.sort(
+    (a, b) => getDistanceFromLatLonInKm(b.lat, b.lng, lat, lng) - getDistanceFromLatLonInKm(a.lat, a.lng, lat, lng),
+  );
 }

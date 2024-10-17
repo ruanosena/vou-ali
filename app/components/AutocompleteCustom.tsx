@@ -55,9 +55,9 @@ export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
     [autocompleteService, sessionToken, locationBias],
   );
 
-  const onInputChange = useCallback(
+  const handleInputChange = useCallback(
     (event: FormEvent<HTMLInputElement>) => {
-      const value = (event.target as HTMLInputElement)?.value;
+      const value = event.currentTarget.value;
 
       setInputValue(value);
 
@@ -91,11 +91,11 @@ export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
   );
 
   return (
-    <div className="autocomplete-container text-background">
+    <div className="autocomplete-container">
       <input
         className="w-full max-w-56 rounded-sm sm:max-w-80"
         value={inputValue}
-        onInput={(event: FormEvent<HTMLInputElement>) => onInputChange(event)}
+        onInput={(event: FormEvent<HTMLInputElement>) => handleInputChange(event)}
         placeholder="Pesquise um local"
       />
 
