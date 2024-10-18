@@ -20,7 +20,10 @@ export default async function Home() {
 
   return (
     <Fragment>
-      <SearchPonto location={geo && { lat: geo.lat, lng: geo.lng }} />
+      <SearchPonto
+        // avoids cookie without coords
+        {...(geo?.lat && geo.lng && { location: { lat: geo.lat, lng: geo.lng } })}
+      />
 
       <section className="flex min-h-screen items-center bg-background">
         <div className="relative mx-auto max-w-7xl flex-col px-4 sm:static sm:px-6 lg:px-8">

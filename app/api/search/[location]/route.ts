@@ -50,65 +50,76 @@ export async function GET(req: Request, { params }: { params: { location: string
 
   // Sorts by straight-line distance and takes the first 7
   const data = sortByDistance(normalizeData(pontos), lat, lng).slice(0, 7);
-  console.dir(data, { depth: null });
 
   return Response.json({ data }, { status: 200 });
 }
 
 async function queryByBoundingBox(bBox: google.maps.LatLngBoundsLiteral, resultTimes = PONTOS_RESULTS_TIMES) {
-  return prisma.ponto.findMany({
-    take: MAX_SUGGESTIONS * resultTimes,
-    include: {
-      social: true,
-      apelidos: true,
-      local: true,
-    },
-    where: {
-      publicado: true,
-      AND: [
-        { lat: { lte: bBox.north }, lng: { lte: bBox.east } },
-        { lat: { gte: bBox.south }, lng: { gte: bBox.west } },
-      ],
-    },
-  });
+  try {
+    const results = await prisma.ponto.findMany({
+      take: MAX_SUGGESTIONS * resultTimes,
+      include: {
+        social: true,
+        apelidos: true,
+        local: true,
+      },
+      where: {
+        publicado: true,
+        AND: [
+          { lat: { lte: bBox.north }, lng: { lte: bBox.east } },
+          { lat: { gte: bBox.south }, lng: { gte: bBox.west } },
+        ],
+      },
+    });
+    return results;
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
 }
 
 async function queryByTextInput(input: string, resultTimes = PONTOS_RESULTS_TIMES) {
-  return prisma.ponto.findMany({
-    take: MAX_SUGGESTIONS * resultTimes,
-    include: {
-      social: true,
-      apelidos: true,
-      local: true,
-    },
-    where: {
-      publicado: true,
-      OR: [
-        {
-          nome: {
-            contains: input,
-            mode: "insensitive",
+  try {
+    const results = await prisma.ponto.findMany({
+      take: MAX_SUGGESTIONS * resultTimes,
+      include: {
+        social: true,
+        apelidos: true,
+        local: true,
+      },
+      where: {
+        publicado: true,
+        OR: [
+          {
+            nome: {
+              contains: input,
+              mode: "insensitive",
+            },
           },
-        },
-        {
-          slug: {
-            contains: input,
-            mode: "insensitive",
+          {
+            slug: {
+              contains: input,
+              mode: "insensitive",
+            },
           },
-        },
-        {
-          apelidos: {
-            some: {
-              apelido: {
-                contains: input,
-                mode: "insensitive",
+          {
+            apelidos: {
+              some: {
+                apelido: {
+                  contains: input,
+                  mode: "insensitive",
+                },
               },
             },
           },
-        },
-      ],
-    },
-  });
+        ],
+      },
+    });
+    return results;
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
 }
 
 function normalizeData(data: Awaited<ReturnType<typeof queryByTextInput>>) {

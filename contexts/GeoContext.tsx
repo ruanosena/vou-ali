@@ -11,7 +11,9 @@ type GeoProviderProps = {
 interface GeoProviderState {
   location: google.maps.LatLngLiteral;
   locationBias: google.maps.LatLngBoundsLiteral;
-  mapsGetBoundingBox: (lat: number, lng: number, radius?: number) => google.maps.LatLngBoundsLiteral | undefined;
+  isDefaultLocation: boolean;
+  geometryAvailable: boolean;
+  mapsGetBoundingBox: (lat: number, lng: number, radius?: number) => google.maps.LatLngBoundsLiteral;
 }
 
 const initialState: GeoProviderState = {
@@ -24,27 +26,29 @@ const initialState: GeoProviderState = {
     south: -34.32198851984677,
     west: -80.67214874999999,
   },
-  mapsGetBoundingBox: () => undefined,
+  isDefaultLocation: true,
+  geometryAvailable: false,
+  mapsGetBoundingBox: () => ({}) as google.maps.LatLngBoundsLiteral,
 };
 
 const GeoProviderContext = createContext<GeoProviderState>(initialState);
 
 export function GeoProvider({ children, ...props }: GeoProviderProps) {
   const [location, setLocation] = useState<google.maps.LatLngLiteral>(initialState.location);
+  const [isDefaultLocation, setIsDefaultLocation] = useState(initialState.isDefaultLocation);
   const [locationBias, setLocationBias] = useState<google.maps.LatLngBoundsLiteral>(initialState.locationBias);
+  const [geometryAvailable, setGeometryAvailable] = useState(initialState.geometryAvailable);
   const geometry = useMapsLibrary("geometry");
 
   const mapsGetBoundingBox = useCallback(
-    (lat: number, lng: number, radius = 10000): google.maps.LatLngBoundsLiteral | undefined => {
-      if (geometry) {
-        // Create a bounding box with sides ~10km (default) away from the coordinates
-        const bounds = new google.maps.LatLngBounds();
-        [0, 90, 180, 270].forEach((angle) => {
-          const side = geometry.spherical.computeOffset({ lat, lng }, radius, angle);
-          bounds.extend(side);
-        });
-        return bounds.toJSON();
-      }
+    (lat: number, lng: number, radius = 10000): google.maps.LatLngBoundsLiteral => {
+      // Create a bounding box with sides ~10km (default) away from the coordinates
+      const bounds = new google.maps.LatLngBounds();
+      [0, 90, 180, 270].forEach((angle) => {
+        const side = geometry!.spherical.computeOffset({ lat, lng }, radius, angle);
+        bounds.extend(side);
+      });
+      return bounds.toJSON();
     },
     [geometry],
   );
@@ -55,21 +59,22 @@ export function GeoProvider({ children, ...props }: GeoProviderProps) {
       navigator.geolocation.getCurrentPosition(({ coords }) => {
         const { latitude, longitude } = coords;
         setLocation({ lat: latitude, lng: longitude });
+        setIsDefaultLocation(false);
       });
     }
   }, []);
 
   useEffect(() => {
-    // FIXME: remover restrição location default Brasil
-    if (location.lat === initialState.location.lat && location.lng === initialState.location.lng) return;
-    const bBox = mapsGetBoundingBox(location.lat, location.lng);
-    if (bBox) setLocationBias(bBox);
-  }, [location, mapsGetBoundingBox]);
+    if (geometry && !isDefaultLocation) setLocationBias(mapsGetBoundingBox(location.lat, location.lng));
+    setGeometryAvailable(!!geometry);
+  }, [geometry, location, isDefaultLocation]);
 
   const value: GeoProviderState = {
     location,
     locationBias,
+    isDefaultLocation: isDefaultLocation,
     mapsGetBoundingBox,
+    geometryAvailable,
   };
 
   return (
