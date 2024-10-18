@@ -88,7 +88,7 @@ export function SearchPonto({ location: locationProps, className, ...props }: Pr
       <div className="flex h-[calc(100vh_-_560px)] max-h-72 min-h-24 w-full shrink-0 flex-col items-center">
         <h1
           className={cn(
-            "mt-auto font-mono text-7xl font-semibold tracking-wide text-secondary",
+            "mt-auto whitespace-nowrap font-mono text-5xl font-semibold tracking-wide text-secondary sm:text-6xl md:text-7xl",
             "inline-block bg-gradient-to-r from-indigo-500 from-10% via-sky-500 via-55% to-emerald-500 to-90% bg-clip-text text-transparent",
           )}
         >
@@ -125,8 +125,8 @@ export function SearchPonto({ location: locationProps, className, ...props }: Pr
           >
             <Separator className="mx-auto mb-1 w-[calc(100%_-_1rem)] bg-border/50 md:w-[calc(100%_-_1.5rem)]" />
             {pontoResults.map((ponto) => (
-              <div className="group hover:bg-input">
-                <div key={ponto.id} className="ml-3.5 mr-5 flex items-center py-1.5 text-lg/7">
+              <div key={ponto.id} className="group hover:bg-input">
+                <div className="ml-3.5 mr-5 flex items-center py-1.5 text-lg/7">
                   <Pin className="mr-3.5 size-5 text-input group-hover:text-primary/80" />
                   <span className="cursor-default group-hover:text-primary">{ponto.nome}</span>
                 </div>
