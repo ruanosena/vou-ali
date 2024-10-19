@@ -1,3 +1,12 @@
+export type PesquisaTipo = "Local" | "Ponto";
+export interface Pesquisa {
+  id: string;
+  nome: string;
+  lat: number;
+  lng: number;
+  tipo: PesquisaTipo;
+  distancia?: number;
+}
 export interface Local {
   id: string;
   enderecoFormatado: string;
@@ -16,7 +25,7 @@ export interface Ponto {
   nome: string;
   slug: string;
   apelidos: Apelido[];
-  local: Local;
+  local?: Local;
   site?: string | null;
   telefone?: string | null;
   telefoneFormatado?: string | null;

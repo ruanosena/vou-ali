@@ -4,12 +4,13 @@ import { cn } from "@/lib/utils";
 import { HTMLAttributes, useCallback, useEffect, useRef, useState } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Ponto } from "@/types";
-import { Pin, Search } from "lucide-react";
+import { Pesquisa } from "@/types";
+import { Search } from "lucide-react";
 import { INITIAL_SUGGESTIONS_CHAR } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import Link from "next/link";
+import { SearchResponse } from "../api/search/[location]/route";
+import SearchResultIcon from "./SearchResultIcon";
 
 interface Props extends HTMLAttributes<HTMLDivElement> {
   location?: google.maps.LatLngLiteral;
@@ -17,11 +18,15 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
 
 export function SearchPonto({ location: locationProps, className, ...props }: Props) {
   const { location, locationBias, geometryAvailable, isDefaultLocation, mapsGetBoundingBox } = useGeo();
-  const [inputValue, setInputValue] = useState("");
+
   const inputRef = useRef<HTMLInputElement>(null);
+  const [inputValue, setInputValue] = useState("");
+
   const [isOpen, setIsOpen] = useState(false);
-  const [initialPontoResults, setInitialPontoResults] = useState<Ponto[]>([]);
-  const [pontoResults, setPontoResults] = useState<Ponto[]>([]);
+
+  const [initialResults, setInitialResults] = useState<Pesquisa[]>([]);
+  const [results, setResults] = useState<Pesquisa[]>([]);
+
   const [searchDebounce, setSearchDebounce] = useState<NodeJS.Timeout>();
   const scheduled = useRef<string | null>(null);
   const lastSearch = useRef("");
@@ -44,15 +49,15 @@ export function SearchPonto({ location: locationProps, className, ...props }: Pr
           isDefaultLocation && locationProps ? locationProps.lng : location.lng
         }?${searchParams.toString()}`,
       );
-      const response: { data?: Ponto[]; error?: string } = await request.json();
+      const response: SearchResponse = await request.json();
 
       lastSearch.current = value ?? scheduled.current ?? "";
       if (response.data) {
-        if (value === INITIAL_SUGGESTIONS_CHAR) setInitialPontoResults(response.data);
-        else setPontoResults(response.data);
+        if (value === INITIAL_SUGGESTIONS_CHAR) setInitialResults(response.data);
+        else setResults(response.data);
       }
     },
-    [locationProps, location, locationBias, searchDebounce, isDefaultLocation, mapsGetBoundingBox],
+    [locationProps, location, locationBias, isDefaultLocation, mapsGetBoundingBox],
   );
 
   const handleInputChange = useCallback(
@@ -61,17 +66,26 @@ export function SearchPonto({ location: locationProps, className, ...props }: Pr
       setInputValue(value);
       if (!value || value === INITIAL_SUGGESTIONS_CHAR) return;
       value = encodeURIComponent(value);
+
+      clearTimeout(searchDebounce);
       if (value === lastSearch.current) return;
 
       if (!scheduled.current) {
-        setTimeout(() => {
-          search();
+        setTimeout(async () => {
+          await search();
           scheduled.current = null;
         }, 250);
+      } else {
+        // debounce at the end of typing
+        setSearchDebounce(
+          setTimeout(async () => {
+            await search(value);
+          }, 400),
+        );
       }
       scheduled.current = value;
     },
-    [location, searchDebounce, search, initialPontoResults],
+    [searchDebounce, search],
   );
 
   useEffect(() => {
@@ -80,8 +94,8 @@ export function SearchPonto({ location: locationProps, className, ...props }: Pr
   }, [geometryAvailable, isDefaultLocation]);
 
   useEffect(() => {
-    if (!inputValue) setPontoResults(initialPontoResults);
-  }, [initialPontoResults, inputValue]);
+    if (!inputValue) setResults(initialResults);
+  }, [initialResults, inputValue]);
 
   return (
     <div className={cn("flex min-h-screen flex-col items-center bg-secondary-foreground", className)} {...props}>
@@ -96,7 +110,7 @@ export function SearchPonto({ location: locationProps, className, ...props }: Pr
         </h1>
       </div>
       <div className="relative w-full min-w-72 max-w-xl p-5">
-        <Popover open={isOpen && !!pontoResults.length}>
+        <Popover open={isOpen}>
           <PopoverTrigger asChild>
             <label className="flex items-center rounded-md bg-muted-foreground pr-3 data-[state=open]:rounded-b-none">
               <Search className="mx-2 size-6 text-input md:mx-3" />
@@ -105,7 +119,7 @@ export function SearchPonto({ location: locationProps, className, ...props }: Pr
                 ref={inputRef}
                 type="text"
                 placeholder="Digite um local ou pesquise..."
-                className="flex h-14 border-none px-0 py-3 text-xl/8 text-popover outline-none placeholder:text-muted-foreground focus-visible:ring-0 md:text-2xl/10"
+                className="flex h-14 border-none px-0 py-3 text-lg/8 text-popover outline-none placeholder:text-muted-foreground focus-visible:ring-0 md:text-lg/10"
                 value={inputValue}
                 onChange={handleInputChange}
                 onFocus={() => setIsOpen(true)}
@@ -114,7 +128,7 @@ export function SearchPonto({ location: locationProps, className, ...props }: Pr
           </PopoverTrigger>
 
           <PopoverContent
-            className="w-[var(--radix-popover-trigger-width)] rounded-t-none border-none bg-muted-foreground p-0 text-popover"
+            className="w-[var(--radix-popover-trigger-width)] rounded-t-none border-none bg-muted-foreground p-0 pb-3 text-popover"
             onOpenAutoFocus={(event) => event.preventDefault()}
             sideOffset={0}
             onEscapeKeyDown={() => setIsOpen(false)}
@@ -124,14 +138,20 @@ export function SearchPonto({ location: locationProps, className, ...props }: Pr
             onCloseAutoFocus={(event) => event.preventDefault()}
           >
             <Separator className="mx-auto mb-1 w-[calc(100%_-_1rem)] bg-border/50 md:w-[calc(100%_-_1.5rem)]" />
-            {pontoResults.map((ponto) => (
-              <div key={ponto.id} className="group hover:bg-input">
-                <div className="ml-3.5 mr-5 flex items-center py-1.5 text-lg/7">
-                  <Pin className="mr-3.5 size-5 text-input group-hover:text-primary/80" />
-                  <span className="cursor-default group-hover:text-primary">{ponto.nome}</span>
+            {results.length ? (
+              results.map((pesquisa) => (
+                <div key={pesquisa.id} className="group hover:bg-input">
+                  <div className="ml-3.5 mr-5 flex items-center py-1.5 text-lg/7">
+                    <SearchResultIcon tipo={pesquisa.tipo} />
+                    <span className="cursor-default group-hover:text-primary">{pesquisa.nome}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <span className="ml-3.5 mr-5 flex items-center justify-center py-1.5 text-lg/7">
+                Nenhum resultado encontrado. 😕
+              </span>
+            )}
           </PopoverContent>
         </Popover>
       </div>
