@@ -1,4 +1,4 @@
-import { INITIAL_SUGGESTIONS_CHAR, MAX_SUGGESTIONS } from "@/lib/constants";
+import { MAX_SUGGESTIONS } from "@/lib/constants";
 import prisma from "@/lib/prisma";
 import { getDistanceFromLatLonInKm } from "@/lib/utils";
 import { Pesquisa } from "@/types";
@@ -32,15 +32,16 @@ export async function GET(req: Request, { params }: { params: { location: string
   }
 
   const { searchParams } = new URL(req.url);
-  const query = decodeURIComponent(searchParams.get("q") ?? "").trim();
+  const queryParam = decodeURIComponent(searchParams.get("q") ?? "").trim();
+  const sortByDistanceParam = decodeURIComponent(searchParams.get("sd") ?? "").trim() === "true" ? true : false;
 
-  if (!query || !/(?:(?![×Þß÷þø])[-_'0-9a-zÀ-ÿ])+/i.test(query)) {
-    // doesn't have a character (letter|number) with accents or not
+  if (queryParam && !/(?:(?![×Þß÷þø])[-_'0-9a-zÀ-ÿ])+/i.test(queryParam)) {
+    // query text doesn't have a character (letter|number) with accents or not
     payload.error = "No search found";
     return Response.json(payload, { status: 404 });
   }
 
-  if (query === INITIAL_SUGGESTIONS_CHAR) {
+  if (!queryParam) {
     let bounds: google.maps.LatLngBoundsLiteral | undefined;
     try {
       bounds = {
@@ -61,17 +62,20 @@ export async function GET(req: Request, { params }: { params: { location: string
       const leftPayload = formatEndereco(await queryEnderecoByBoundingBox(bounds, whatsLeft));
       payload.data = payload.data.concat(leftPayload);
     }
-    // Sorts by straight-line distance
-    payload.data = sortByDistance(payload.data, lat, lng);
   } else {
     // Finds by the query
-    payload.data = formatLocal(await queryLocalByTextInput(query));
+    payload.data = formatLocal(await queryLocalByTextInput(queryParam));
 
     if (payload.data.length < MAX_SUGGESTIONS) {
       const whatsLeft = MAX_SUGGESTIONS - payload.data.length;
-      const leftPayload = formatEndereco(await queryEnderecoByTextInput(query, whatsLeft));
+      const leftPayload = formatEndereco(await queryEnderecoByTextInput(queryParam, whatsLeft));
       payload.data = payload.data.concat(leftPayload);
     }
+  }
+
+  if (sortByDistanceParam) {
+    // Sorts by straight-line distance
+    payload.data = sortByDistance(payload.data, lat, lng);
   }
 
   return Response.json(payload, { status: 200 });
@@ -86,7 +90,7 @@ async function queryLocal(where: Prisma.LocalWhereInput, take: number) {
     });
     return results;
   } catch (error) {
-    console.error(error);
+    // console.error(error);
     return [];
   }
 }
@@ -101,101 +105,81 @@ async function queryEndereco(where: Prisma.EnderecoWhereInput, take: number) {
     });
     return results;
   } catch (error) {
-    console.error(error);
+    // console.error(error);
     return [];
   }
 }
 
 async function queryLocalByBoundingBox(bBox: google.maps.LatLngBoundsLiteral, quantity = MAX_SUGGESTIONS) {
-  try {
-    const results = await queryLocal(
-      {
-        AND: [
-          { lat: { lte: bBox.north }, lng: { lte: bBox.east } },
-          { lat: { gte: bBox.south }, lng: { gte: bBox.west } },
-        ],
-      },
-      quantity,
-    );
-    return results;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
+  const results = await queryLocal(
+    {
+      AND: [
+        { lat: { lte: bBox.north }, lng: { lte: bBox.east } },
+        { lat: { gte: bBox.south }, lng: { gte: bBox.west } },
+      ],
+    },
+    quantity,
+  );
+  return results;
 }
 
 async function queryEnderecoByBoundingBox(bBox: google.maps.LatLngBoundsLiteral, quantity: number) {
-  try {
-    const results = await queryEndereco(
-      {
-        AND: [
-          { lat: { lte: bBox.north }, lng: { lte: bBox.east } },
-          { lat: { gte: bBox.south }, lng: { gte: bBox.west } },
-        ],
-      },
-      quantity,
-    );
-    return results;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
+  const results = await queryEndereco(
+    {
+      AND: [
+        { lat: { lte: bBox.north }, lng: { lte: bBox.east } },
+        { lat: { gte: bBox.south }, lng: { gte: bBox.west } },
+      ],
+    },
+    quantity,
+  );
+  return results;
 }
 
 async function queryLocalByTextInput(text: string, quantity = MAX_SUGGESTIONS) {
-  try {
-    const results = await queryLocal(
-      {
-        OR: [
-          {
-            nome: {
-              contains: text,
-              mode: "insensitive",
-            },
+  const results = await queryLocal(
+    {
+      OR: [
+        {
+          nome: {
+            contains: text,
+            mode: "insensitive",
           },
-          {
-            slug: {
-              contains: text,
-              mode: "insensitive",
-            },
+        },
+        {
+          slug: {
+            contains: text,
+            mode: "insensitive",
           },
-          {
-            apelidos: {
-              some: {
-                apelido: {
-                  contains: text,
-                  mode: "insensitive",
-                },
+        },
+        {
+          apelidos: {
+            some: {
+              apelido: {
+                contains: text,
+                mode: "insensitive",
               },
             },
           },
-        ],
-      },
-      quantity,
-    );
-    return results;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
+        },
+      ],
+    },
+    quantity,
+  );
+  return results;
 }
 
 async function queryEnderecoByTextInput(text: string, quantity: number) {
-  try {
-    const results = await queryEndereco(
-      {
-        enderecoFormatado: {
-          contains: text,
-          mode: "insensitive",
-        },
+  const results = await queryEndereco(
+    {
+      enderecoFormatado: {
+        contains: text,
+        mode: "insensitive",
       },
-      quantity,
-    );
-    return results;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
+    },
+    quantity,
+  );
+  return results;
 }
 
 function formatLocal(data: QueryLocalResult) {

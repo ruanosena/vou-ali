@@ -12,8 +12,10 @@ interface GeoProviderState {
   location: google.maps.LatLngLiteral;
   locationBias: google.maps.LatLngBoundsLiteral;
   isDefaultLocation: boolean;
+  isDefaultLocationBias: boolean;
   geometryAvailable: boolean;
   mapsGetBoundingBox: (lat: number, lng: number, radius?: number) => google.maps.LatLngBoundsLiteral;
+  promptGeolocation: (callbackOnAccept?: () => void) => void;
 }
 
 const initialState: GeoProviderState = {
@@ -27,8 +29,10 @@ const initialState: GeoProviderState = {
     west: -80.67214874999999,
   },
   isDefaultLocation: true,
+  isDefaultLocationBias: true,
   geometryAvailable: false,
   mapsGetBoundingBox: () => ({}) as google.maps.LatLngBoundsLiteral,
+  promptGeolocation: () => null,
 };
 
 const GeoProviderContext = createContext<GeoProviderState>(initialState);
@@ -37,6 +41,7 @@ export function GeoProvider({ children, ...props }: GeoProviderProps) {
   const [location, setLocation] = useState<google.maps.LatLngLiteral>(initialState.location);
   const [isDefaultLocation, setIsDefaultLocation] = useState(initialState.isDefaultLocation);
   const [locationBias, setLocationBias] = useState<google.maps.LatLngBoundsLiteral>(initialState.locationBias);
+  const [isDefaultLocationBias, setIsDefaultLocationBias] = useState(initialState.isDefaultLocation);
   const [geometryAvailable, setGeometryAvailable] = useState(initialState.geometryAvailable);
   const geometry = useMapsLibrary("geometry");
 
@@ -53,28 +58,34 @@ export function GeoProvider({ children, ...props }: GeoProviderProps) {
     [geometry],
   );
 
-  useEffect(() => {
+  const promptGeolocation = useCallback((onAccept?: () => void) => {
     if ("geolocation" in navigator) {
       // Retrieve latitude & longitude coordinates from `navigator.geolocation` Web API
       navigator.geolocation.getCurrentPosition(({ coords }) => {
         const { latitude, longitude } = coords;
         setLocation({ lat: latitude, lng: longitude });
         setIsDefaultLocation(false);
+        onAccept && onAccept();
       });
     }
   }, []);
 
   useEffect(() => {
-    if (geometry && !isDefaultLocation) setLocationBias(mapsGetBoundingBox(location.lat, location.lng));
+    if (geometry && !isDefaultLocation) {
+      setLocationBias(mapsGetBoundingBox(location.lat, location.lng));
+      setIsDefaultLocationBias(false);
+    }
     setGeometryAvailable(!!geometry);
   }, [geometry, location, isDefaultLocation]);
 
   const value: GeoProviderState = {
     location,
     locationBias,
-    isDefaultLocation: isDefaultLocation,
+    isDefaultLocation,
+    isDefaultLocationBias,
     mapsGetBoundingBox,
     geometryAvailable,
+    promptGeolocation,
   };
 
   return (

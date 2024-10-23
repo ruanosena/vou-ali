@@ -26,19 +26,9 @@ export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
 
   const [inputValue, setInputValue] = useState<string>("");
 
-  const { locationBias } = useGeo();
+  const { locationBias, isDefaultLocation, promptGeolocation } = useGeo();
 
   const [fetchDebounce, setFetchDebounce] = useState<NodeJS.Timeout>();
-
-  useEffect(() => {
-    if (!places || !map) return;
-
-    setAutocompleteService(new places.AutocompleteService());
-    setPlacesService(new places.PlacesService(map));
-    setSessionToken(new places.AutocompleteSessionToken());
-
-    return () => setAutocompleteService(null);
-  }, [map, places]);
 
   const fetchPredictions = useCallback(
     async (inputValue: string) => {
@@ -47,12 +37,13 @@ export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
         return;
       }
 
-      const request: google.maps.places.AutocompletionRequest = { input: inputValue, sessionToken, locationBias };
+      const request: google.maps.places.AutocompletionRequest = { input: inputValue, sessionToken };
+      if (!isDefaultLocation) request.locationBias = locationBias;
       const response = await autocompleteService.getPlacePredictions(request);
 
       setPredictionResults(response.predictions);
     },
-    [autocompleteService, sessionToken, locationBias],
+    [autocompleteService, sessionToken, locationBias, isDefaultLocation],
   );
 
   const handleInputChange = useCallback(
@@ -89,6 +80,20 @@ export const AutocompleteCustom = ({ onPlaceSelect }: Props) => {
     },
     [onPlaceSelect, places, placesService, sessionToken],
   );
+
+  useEffect(() => {
+    promptGeolocation();
+  }, []);
+
+  useEffect(() => {
+    if (!places || !map) return;
+
+    setAutocompleteService(new places.AutocompleteService());
+    setPlacesService(new places.PlacesService(map));
+    setSessionToken(new places.AutocompleteSessionToken());
+
+    return () => setAutocompleteService(null);
+  }, [map, places]);
 
   return (
     <div className="autocomplete-container">

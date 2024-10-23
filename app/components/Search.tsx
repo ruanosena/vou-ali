@@ -6,18 +6,29 @@ import { HTMLAttributes, useCallback, useEffect, useRef, useState } from "react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Pesquisa } from "@/types";
 import { SearchIcon } from "lucide-react";
-import { INITIAL_SUGGESTIONS_CHAR } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { SearchResponse } from "../api/search/[location]/route";
 import SearchResultIcon from "./SearchResultIcon";
-
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { useSearchSettings } from "@/hooks/useSearchSettings";
 interface Props extends HTMLAttributes<HTMLDivElement> {
   location?: google.maps.LatLngLiteral;
 }
 
 export function Search({ location: locationProps, className, ...props }: Props) {
-  const { location, locationBias, geometryAvailable, isDefaultLocation, mapsGetBoundingBox } = useGeo();
+  const { location, locationBias, geometryAvailable, isDefaultLocationBias, mapsGetBoundingBox } = useGeo();
 
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState("");
@@ -31,40 +42,50 @@ export function Search({ location: locationProps, className, ...props }: Props) 
   const scheduled = useRef<string | null>(null);
   const lastSearch = useRef("");
 
+  const { geolocationOn, sortByDistanceOn, handleChangeGeolocationOn, handleChangeSortByDistance } =
+    useSearchSettings();
+
   const search = useCallback(
-    async (value?: string) => {
-      const searchParams = new URLSearchParams({ q: value ?? scheduled.current ?? "" });
-      if (value === INITIAL_SUGGESTIONS_CHAR) {
-        if (isDefaultLocation && locationProps) {
+    async (value: string) => {
+      // if value is a empty string, then fetches initial suggestions
+      let url = "/api/search";
+
+      const searchParams = new URLSearchParams({ q: value, sd: String(sortByDistanceOn) });
+
+      if (geolocationOn && !isDefaultLocationBias) {
+        url += `/${location.lat},${location.lng}`;
+
+        if (!value)
+          Object.entries(locationBias).forEach(([key, value]) => searchParams.append(key, encodeURIComponent(value)));
+      } else if (locationProps) {
+        url += `/${locationProps.lat},${locationProps.lng}`;
+
+        if (!value)
           Object.entries(mapsGetBoundingBox(locationProps.lat, locationProps.lng)).forEach(([key, value]) =>
             searchParams.append(key, encodeURIComponent(value)),
           );
-        } else {
-          Object.entries(locationBias).forEach(([key, value]) => searchParams.append(key, encodeURIComponent(value)));
-        }
+      } else {
+        return;
       }
 
-      const request = await fetch(
-        `/api/search/${isDefaultLocation && locationProps ? locationProps.lat : location.lat},${
-          isDefaultLocation && locationProps ? locationProps.lng : location.lng
-        }?${searchParams.toString()}`,
-      );
-      const response: SearchResponse = await request.json();
+      url += `?${searchParams.toString()}`;
 
-      lastSearch.current = value ?? scheduled.current ?? "";
-      if (response.data) {
-        if (value === INITIAL_SUGGESTIONS_CHAR) setInitialResults(response.data);
-        else setResults(response.data);
+      const { data }: SearchResponse = await fetch(url).then((response) => response.json());
+
+      lastSearch.current = value;
+      if (data) {
+        if (!value) setInitialResults(data);
+        else setResults(data);
       }
     },
-    [locationProps, location, locationBias, isDefaultLocation, mapsGetBoundingBox],
+    [location, locationProps, locationBias, mapsGetBoundingBox, geolocationOn, sortByDistanceOn, isDefaultLocationBias],
   );
 
   const handleInputChange = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       let value = event.currentTarget.value;
       setInputValue(value);
-      if (!value || value === INITIAL_SUGGESTIONS_CHAR) return;
+      if (!value) return;
       value = encodeURIComponent(value);
 
       clearTimeout(searchDebounce);
@@ -72,7 +93,7 @@ export function Search({ location: locationProps, className, ...props }: Props) 
 
       if (!scheduled.current) {
         setTimeout(async () => {
-          await search();
+          await search(scheduled.current!);
           scheduled.current = null;
         }, 250);
       } else {
@@ -89,9 +110,9 @@ export function Search({ location: locationProps, className, ...props }: Props) 
   );
 
   useEffect(() => {
-    // get initial suggestions
-    if (geometryAvailable) search("_");
-  }, [geometryAvailable, isDefaultLocation]);
+    // get initial suggestions, also when locationBias changes
+    if (geometryAvailable) search("");
+  }, [geometryAvailable, isDefaultLocationBias]);
 
   useEffect(() => {
     if (!inputValue) setResults(initialResults);
@@ -99,6 +120,57 @@ export function Search({ location: locationProps, className, ...props }: Props) 
 
   return (
     <div className={cn("flex min-h-screen flex-col items-center bg-secondary-foreground", className)} {...props}>
+      <div className="container flex h-12 w-full items-center justify-end px-4">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="ghost" className="text-primary-foreground sm:text-base">
+              Configurações de Pesquisa
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-72 border-border bg-secondary-foreground text-popover">
+            <DialogHeader>
+              <DialogTitle>Pesquisa</DialogTitle>
+              <DialogDescription>Configure a pesquisa aqui.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label htmlFor="geolocation" className="col-span-2 text-right text-base">
+                  Geolocalização
+                </Label>
+                <div className="flex justify-end gap-2">
+                  <span className="text-sm uppercase text-muted-foreground">{geolocationOn ? "on" : "off"}</span>
+                  <Switch
+                    className="data-[state=checked]:bg-muted data-[state=unchecked]:bg-muted"
+                    id="geolocation"
+                    checked={geolocationOn}
+                    onCheckedChange={handleChangeGeolocationOn}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <Label htmlFor="distancia" className="col-span-2 text-right text-base">
+                  Ordenar por Distância
+                </Label>
+                <div className="flex justify-end gap-2">
+                  <span className="text-sm uppercase text-muted-foreground">{sortByDistanceOn ? "on" : "off"}</span>
+                  <Switch
+                    className="data-[state=checked]:bg-muted data-[state=unchecked]:bg-muted"
+                    id="distancia"
+                    checked={sortByDistanceOn}
+                    onCheckedChange={handleChangeSortByDistance}
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button className="text-base shadow-none" type="button">
+                Fechar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
       <div className="flex h-[calc(100vh_-_560px)] max-h-72 min-h-24 w-full shrink-0 flex-col items-center">
         <h1
           className={cn(
@@ -109,6 +181,7 @@ export function Search({ location: locationProps, className, ...props }: Props) 
           Vou Alí
         </h1>
       </div>
+
       <div className="relative w-full min-w-72 max-w-xl p-5">
         <Popover open={isOpen}>
           <PopoverTrigger asChild>
@@ -147,9 +220,13 @@ export function Search({ location: locationProps, className, ...props }: Props) 
                   </div>
                 </div>
               ))
+            ) : inputValue ? (
+              <span className="ml-3.5 mr-5 flex items-center justify-center py-1.5 text-lg/7">
+                Nenhum resultado encontrado 😕
+              </span>
             ) : (
               <span className="ml-3.5 mr-5 flex items-center justify-center py-1.5 text-lg/7">
-                Nenhum resultado encontrado. 😕
+                Pesquise como você ouviu dizer 🗣️
               </span>
             )}
           </PopoverContent>

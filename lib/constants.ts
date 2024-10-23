@@ -10,6 +10,4 @@ export const SOCIAL_LINKS_PLACEHOLDERS: Record<RedeSocialNome, string> = {
   TELEGRAM: "https://t.me/+#####",
 };
 
-export const INITIAL_SUGGESTIONS_CHAR = "_";
-
 export const MAX_SUGGESTIONS = 8;
