@@ -7,7 +7,9 @@ import { Endereco, Local, Usuario } from "@/types";
 
 export async function createLocal(formData: FormData) {
   const rawData = Object.fromEntries(formData.entries()) as unknown as Local;
-  rawData.slug = slugify(rawData.nome, { lower: true });
+
+  rawData.slug = await generateLocalSlug(rawData.nome);
+
   rawData.apelidos = JSON.parse(rawData.apelidos as unknown as string);
   rawData.endereco = JSON.parse(rawData.endereco as unknown as string);
   rawData.redesSociais = JSON.parse(rawData.redesSociais as unknown as string);
@@ -54,4 +56,19 @@ async function createOrGetUsuario(data: Usuario) {
     update: {},
     create: data,
   });
+}
+
+/** @link https://github.com/tubbo/prisma-slug?tab=readme-ov-file#unique-slugs */
+async function generateLocalSlug(nome: string) {
+  const slug = slugify(nome, { lower: true });
+
+  let attempt = 0;
+  let incrementedSlug = slug;
+
+  while ((await prisma.local.count({ where: { slug: incrementedSlug } })) > 0) {
+    attempt++;
+    incrementedSlug = `${slug}-${attempt}`;
+  }
+
+  return incrementedSlug;
 }

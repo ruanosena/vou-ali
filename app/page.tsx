@@ -39,7 +39,7 @@ export default async function Home() {
           <div>
             <div className="mt-10">
               <a
-                href="/add"
+                href="/local/add"
                 className="inline-block rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-center font-medium text-white hover:bg-indigo-700"
               >
                 Informe seu negócio
