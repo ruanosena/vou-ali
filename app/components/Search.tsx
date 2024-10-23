@@ -5,7 +5,7 @@ import { HTMLAttributes, useCallback, useEffect, useRef, useState } from "react"
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Pesquisa } from "@/types";
-import { Search } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 import { INITIAL_SUGGESTIONS_CHAR } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -16,7 +16,7 @@ interface Props extends HTMLAttributes<HTMLDivElement> {
   location?: google.maps.LatLngLiteral;
 }
 
-export function SearchPonto({ location: locationProps, className, ...props }: Props) {
+export function Search({ location: locationProps, className, ...props }: Props) {
   const { location, locationBias, geometryAvailable, isDefaultLocation, mapsGetBoundingBox } = useGeo();
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -106,14 +106,14 @@ export function SearchPonto({ location: locationProps, className, ...props }: Pr
             "inline-block bg-gradient-to-r from-indigo-500 from-10% via-sky-500 via-55% to-emerald-500 to-90% bg-clip-text text-transparent",
           )}
         >
-          Passar Alí
+          Vou Alí
         </h1>
       </div>
       <div className="relative w-full min-w-72 max-w-xl p-5">
         <Popover open={isOpen}>
           <PopoverTrigger asChild>
             <label className="flex items-center rounded-md bg-muted-foreground pr-3 data-[state=open]:rounded-b-none">
-              <Search className="mx-2 size-6 text-input md:mx-3" />
+              <SearchIcon className="mx-2 size-6 text-input md:mx-3" />
 
               <Input
                 ref={inputRef}

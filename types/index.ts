@@ -1,4 +1,4 @@
-export type PesquisaTipo = "Local" | "Ponto";
+export type PesquisaTipo = "Endereco" | "Local";
 export interface Pesquisa {
   id: string;
   nome: string;
@@ -7,7 +7,7 @@ export interface Pesquisa {
   tipo: PesquisaTipo;
   distancia?: number;
 }
-export interface Local {
+export interface Endereco {
   id: string;
   enderecoFormatado: string;
   lat: number;
@@ -18,18 +18,18 @@ export interface Local {
   oeste?: number | null;
 }
 
-export interface Ponto {
+export interface Local {
   id: string;
   lat: number;
   lng: number;
   nome: string;
   slug: string;
-  apelidos: Apelido[];
-  local?: Local;
+  apelidos: LocalApelido[];
+  endereco?: Endereco;
   site?: string | null;
   telefone?: string | null;
   telefoneFormatado?: string | null;
-  social: Social[];
+  redesSociais: RedeSocial[];
   publicado: boolean;
   usuario?: Usuario;
 }
@@ -39,16 +39,16 @@ export interface Usuario {
   email: string;
 }
 
-export interface Apelido {
+export interface LocalApelido {
   apelido: string;
 }
 
-export interface Social {
-  nome: SocialNome;
+export interface RedeSocial {
+  nome: RedeSocialNome;
   link: string;
 }
 
-export enum SocialNome {
+export enum RedeSocialNome {
   WhatsApp = "WHATSAPP",
   Instagram = "INSTAGRAM",
   Facebook = "FACEBOOK",

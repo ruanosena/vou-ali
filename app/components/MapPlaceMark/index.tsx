@@ -15,7 +15,7 @@ export function MapPlaceMark({ className, ...props }: PropsWithChildren<MapProps
   const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null);
 
   const map = useMap();
-  const { marker, local, mode, clear, setMode, requesting } = useMarker();
+  const { marker, endereco, mode, clear, setMode, requesting } = useMarker();
   const [infoWindowOpen, setInfoWindowOpen] = useState(false);
 
   const advancedMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement>(null);
@@ -29,10 +29,10 @@ export function MapPlaceMark({ className, ...props }: PropsWithChildren<MapProps
   }, [map, selectedPlace]);
 
   useEffect(() => {
-    if (!map || !local?.enderecoFormatado) return;
+    if (!map || !endereco?.enderecoFormatado) return;
 
-    map.fitBounds({ north: local.norte!, east: local.leste!, west: local.oeste!, south: local.sul! });
-  }, [map, local]);
+    map.fitBounds({ north: endereco.norte!, east: endereco.leste!, west: endereco.oeste!, south: endereco.sul! });
+  }, [map, endereco]);
 
   return mode === "editing" ? (
     <Fragment>
@@ -70,7 +70,7 @@ export function MapPlaceMark({ className, ...props }: PropsWithChildren<MapProps
     </Fragment>
   ) : (
     // Has already fetch geocoding data
-    typeof local?.enderecoFormatado == "string" && (
+    typeof endereco?.enderecoFormatado == "string" && (
       <Fragment>
         <Map
           className={cn(
@@ -81,20 +81,25 @@ export function MapPlaceMark({ className, ...props }: PropsWithChildren<MapProps
           center={marker.position}
           mapId={process.env.NEXT_PUBLIC_MAP_ID}
           disableDefaultUI
-          {...(local?.norte && {
-            defaultBounds: { north: local.norte, east: local.leste!, west: local.oeste!, south: local.sul! },
+          {...(endereco?.norte && {
+            defaultBounds: {
+              north: endereco.norte,
+              east: endereco.leste!,
+              west: endereco.oeste!,
+              south: endereco.sul!,
+            },
           })}
           {...props}
         >
           <AdvancedMarker
             ref={advancedMarkerRef}
             position={marker.position}
-            onClick={() => local?.enderecoFormatado && setInfoWindowOpen(true)}
+            onClick={() => endereco?.enderecoFormatado && setInfoWindowOpen(true)}
           />
 
           {infoWindowOpen && (
             <InfoWindow anchor={advancedMarkerRef.current} onCloseClick={() => setInfoWindowOpen(false)}>
-              <h4>{local?.enderecoFormatado}</h4>
+              <h4>{endereco?.enderecoFormatado}</h4>
             </InfoWindow>
           )}
         </Map>

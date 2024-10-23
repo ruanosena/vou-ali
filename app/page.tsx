@@ -2,12 +2,12 @@ import prisma from "@/lib/prisma";
 import { GeoCookieValue } from "@/types";
 import { cookies } from "next/headers";
 import { Fragment } from "react";
-import { SearchPonto } from "./components/SearchPonto";
+import { Search } from "./components/Search";
 
 async function getLocais() {
-  const locais = prisma.local.findMany({
-    where: { ponto: { every: { publicado: true } } },
-    include: { ponto: { select: { nome: true, id: true } } },
+  const locais = prisma.endereco.findMany({
+    where: { locais: { every: { publicado: true } } },
+    include: { locais: { select: { nome: true, id: true } } },
   });
   return locais;
 }
@@ -20,7 +20,7 @@ export default async function Home() {
 
   return (
     <Fragment>
-      <SearchPonto
+      <Search
         // avoids cookie without coords
         {...(geo?.lat && geo.lng && { location: { lat: geo.lat, lng: geo.lng } })}
       />

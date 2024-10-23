@@ -3,15 +3,15 @@ import { MapPlaceMark } from "@/app/components/MapPlaceMark";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { MAX_APELIDOS, SOCIAL_LINKS_PLACEHOLDERS } from "@/lib/constants";
-import { SocialNome } from "@/types";
-import { createPonto } from "@/lib/actions";
+import { RedeSocialNome } from "@/types";
+import { createLocal } from "@/lib/actions";
 import { useMarker } from "@/contexts/MarkerContext";
 import { initialState, reducer, REDUCER_ACTION_TYPE } from "@/lib/slices/socialSlice";
-import { AddPontoButton } from "@/app/components/AddPontoButton";
+import { AddLocalButton } from "@/app/components/AddLocalButton";
 
-export default function AddPonto() {
+export default function AddLocal() {
   const formRef = useRef<HTMLFormElement>(null);
-  const pontoInputRef = useRef<HTMLInputElement>(null);
+  const localInputRef = useRef<HTMLInputElement>(null);
 
   const tagInputRef = useRef<HTMLInputElement>(null);
   const [tag, setTag] = useState("");
@@ -21,12 +21,12 @@ export default function AddPonto() {
   const telPrefixRef = useRef<HTMLInputElement>(null);
   const telSuffixRef = useRef<HTMLInputElement>(null);
 
-  const { clear, local, marker } = useMarker();
+  const { clear, endereco, marker } = useMarker();
 
   const [socialState, socialDispatch] = useReducer(reducer, initialState);
 
   const handleSocialRemove = useCallback(
-    (value: SocialNome) => {
+    (value: RedeSocialNome) => {
       const usedIndex = socialState.used.findIndex(([_, uValue]) => uValue === value);
       if (usedIndex > -1) socialDispatch({ type: REDUCER_ACTION_TYPE.REMOVE, payload: usedIndex });
     },
@@ -75,8 +75,8 @@ export default function AddPonto() {
   );
 
   useEffect(() => {
-    if (marker.position) pontoInputRef.current?.setCustomValidity("");
-    else pontoInputRef.current?.setCustomValidity("Por favor, marque o local no mapa");
+    if (marker.position) localInputRef.current?.setCustomValidity("");
+    else localInputRef.current?.setCustomValidity("Por favor, marque o local no mapa");
   }, [marker]);
 
   return (
@@ -86,7 +86,7 @@ export default function AddPonto() {
         try {
           formData.append("lat", String(marker.position!.lat));
           formData.append("lng", String(marker.position!.lng));
-          formData.append("local", JSON.stringify(local));
+          formData.append("endereco", JSON.stringify(endereco));
 
           const apelido = tags.map((tag) => ({ apelido: tag }));
           formData.set("apelidos", JSON.stringify(apelido));
@@ -118,7 +118,7 @@ export default function AddPonto() {
           const usuario = { nome, email };
           formData.append("usuario", JSON.stringify(usuario));
 
-          await createPonto(formData);
+          await createLocal(formData);
           clear();
           formRef.current?.reset();
           setTags([]);
@@ -175,11 +175,11 @@ export default function AddPonto() {
         </div>
 
         <div className="border-b border-gray-900/10 pb-12">
-          <label htmlFor="ponto" className="px-4 text-lg font-semibold leading-7 text-gray-900">
+          <label htmlFor="local" className="px-4 text-lg font-semibold leading-7 text-gray-900">
             Localização<span className="text-lg text-red-500">*</span>
           </label>
           <p className="mt-1 px-4 leading-6 text-gray-600">Marque corretamente o local no mapa.</p>
-          <input ref={pontoInputRef} type="text" name="ponto" id="ponto" className="sr-only" />
+          <input ref={localInputRef} type="text" name="local" id="local" className="sr-only" />
           <MapPlaceMark className="mx-auto mt-10" />
         </div>
 
@@ -405,7 +405,7 @@ export default function AddPonto() {
       </div>
 
       <div className="mt-6 text-end">
-        <AddPontoButton />
+        <AddLocalButton />
       </div>
     </form>
   );

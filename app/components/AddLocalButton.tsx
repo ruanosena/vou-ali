@@ -2,7 +2,7 @@
 import { useMarker } from "@/contexts/MarkerContext";
 import { useFormStatus } from "react-dom";
 
-export function AddPontoButton() {
+export function AddLocalButton() {
   const { pending } = useFormStatus();
   const { requesting } = useMarker();
 

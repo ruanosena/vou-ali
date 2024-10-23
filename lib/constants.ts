@@ -1,8 +1,8 @@
-import { SocialNome } from "@/types";
+import { RedeSocialNome } from "@/types";
 
 export const MAX_APELIDOS = 5;
 
-export const SOCIAL_LINKS_PLACEHOLDERS: Record<SocialNome, string> = {
+export const SOCIAL_LINKS_PLACEHOLDERS: Record<RedeSocialNome, string> = {
   EMAIL: "mailto:email@provedor.com.br",
   FACEBOOK: "https://www.facebook.com/perfil",
   INSTAGRAM: "https://www.instagram.com/perfil",

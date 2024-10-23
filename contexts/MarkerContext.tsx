@@ -1,6 +1,6 @@
 "use client";
 import { Timer } from "@/lib/utils";
-import { Local } from "@/types";
+import { Endereco } from "@/types";
 import { Snapshot } from "@/types/maps";
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
 import { createContext, ReactNode, useContext, useEffect, useRef, useState } from "react";
@@ -15,7 +15,7 @@ type MarkerMode = "static" | "editing";
 interface MarkerProviderState {
   marker: Snapshot;
   setMarkerPosition: (position: google.maps.LatLngLiteral) => void;
-  local?: Local;
+  endereco?: Endereco;
   requesting?: boolean;
   clear: () => void;
   mode: MarkerMode;
@@ -25,7 +25,7 @@ interface MarkerProviderState {
 const initialState: MarkerProviderState = {
   marker: {},
   setMarkerPosition: () => null,
-  local: undefined,
+  endereco: undefined,
   requesting: undefined,
   clear: () => null,
   mode: "editing",
@@ -39,7 +39,7 @@ export function MarkerProvider({
   storageKey = "@ruanosena:mark-state-0.1.0",
   ...props
 }: MarkerProviderProps) {
-  const [local, setLocal] = useState<Local>();
+  const [endereco, setEndereco] = useState<Endereco>();
   const [marker, setMarker] = useState<Snapshot>(() => {
     try {
       const data = JSON.parse(localStorage.getItem(storageKey) ?? "");
@@ -63,7 +63,7 @@ export function MarkerProvider({
   useEffect(() => {
     if (marker !== previousMarker.current) {
       if (!geocoder) return;
-      if (!marker.position) return setLocal(undefined);
+      if (!marker.position) return setEndereco(undefined);
 
       // debouncing for reverse geocoding fetch
       geocodeDebounce?.clear();
@@ -72,7 +72,7 @@ export function MarkerProvider({
           geocoder.geocode({ location: marker.position }, (result, status) => {
             if (status === "OK") {
               const viewport = result![0].geometry.viewport.toJSON();
-              setLocal({
+              setEndereco({
                 id: "",
                 enderecoFormatado: result![0].formatted_address,
                 ...result![0].geometry.location.toJSON(),
@@ -83,10 +83,10 @@ export function MarkerProvider({
               });
             } else if (status === "ZERO_RESULTS") {
               // 'latlng' em local remoto não retornou nenhum endereço detalhado
-              setLocal({ id: "", enderecoFormatado: "", ...marker.position! });
-              // local recebe a posição do marcador de mapa
+              setEndereco({ id: "", enderecoFormatado: "", ...marker.position! });
+              // endereco recebe a posição do marcador de mapa
             } else {
-              setLocal(undefined);
+              setEndereco(undefined);
             }
           });
         }, previousMarker.current && 2500),
@@ -102,7 +102,7 @@ export function MarkerProvider({
       setMarker(mark);
       localStorage.setItem(storageKey, JSON.stringify(mark, null, 2));
     },
-    local: local,
+    endereco,
     clear: () => {
       localStorage.removeItem(storageKey);
       setMarker({});

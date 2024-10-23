@@ -15,13 +15,13 @@ datasource db {
 }
 
 model Usuario {
-  id    Int     @id @default(autoincrement())
-  nome  String?
-  email String  @unique
-  ponto Ponto[]
+  id     Int     @id @default(autoincrement())
+  nome   String?
+  email  String  @unique
+  locais Local[]
 }
 
-model Local {
+model Endereco {
   id                String   @id @default(uuid())
   enderecoFormatado String   @map("endereco_formatado")
   lat               Decimal
@@ -30,47 +30,47 @@ model Local {
   sul               Decimal?
   leste             Decimal?
   oeste             Decimal?
-  ponto             Ponto[]
+  locais            Local[]
 
   @@unique(name: "posicao", [lat, lng])
 }
 
-model Ponto {
+model Local {
   id                String         @id @default(cuid())
   lat               Decimal
   lng               Decimal
   nome              String
   slug              String
-  apelidos          PontoApelido[]
-  local             Local          @relation(fields: [localId], references: [id])
-  localId           String         @map("local_id")
+  apelidos          LocalApelido[]
+  endereco          Endereco       @relation(fields: [enderecoId], references: [id])
+  enderecoId        String         @map("endereco_id")
   site              String?
   telefone          String?
   telefoneFormatado String?        @map("telefone_formatado")
-  social            Social[]
+  redesSociais      RedeSocial[]
   publicado         Boolean        @default(false)
   usuario           Usuario        @relation(fields: [usuarioId], references: [id])
   usuarioId         Int            @map("usuario_id")
 }
 
-model PontoApelido {
+model LocalApelido {
   id      Int    @id @default(autoincrement())
   apelido String
-  ponto   Ponto  @relation(fields: [pontoId], references: [id])
-  pontoId String @map("ponto_id")
+  local   Local  @relation(fields: [localId], references: [id])
+  localId String @map("local_id")
 
   @@index([apelido])
 }
 
-model Social {
-  id      String     @id @default(uuid())
-  nome    SocialNome
+model RedeSocial {
+  id      String         @id @default(uuid())
+  nome    RedeSocialNome
   link    String
-  ponto   Ponto      @relation(fields: [pontoId], references: [id])
-  pontoId String     @map("ponto_id")
+  local   Local          @relation(fields: [localId], references: [id])
+  localId String         @map("local_id")
 }
 
-enum SocialNome {
+enum RedeSocialNome {
   WHATSAPP
   INSTAGRAM
   FACEBOOK

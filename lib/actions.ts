@@ -3,37 +3,37 @@
 import { Prisma } from "@prisma/client";
 import prisma from "./prisma";
 import slugify from "slugify";
-import { Local, Ponto, Usuario } from "@/types";
+import { Endereco, Local, Usuario } from "@/types";
 
-export async function createPonto(formData: FormData) {
-  const rawData = Object.fromEntries(formData.entries()) as unknown as Ponto;
+export async function createLocal(formData: FormData) {
+  const rawData = Object.fromEntries(formData.entries()) as unknown as Local;
   rawData.slug = slugify(rawData.nome, { lower: true });
   rawData.apelidos = JSON.parse(rawData.apelidos as unknown as string);
-  rawData.local = JSON.parse(rawData.local as unknown as string);
-  rawData.social = JSON.parse(rawData.social as unknown as string);
+  rawData.endereco = JSON.parse(rawData.endereco as unknown as string);
+  rawData.redesSociais = JSON.parse(rawData.redesSociais as unknown as string);
   rawData.usuario = JSON.parse(rawData.usuario as unknown as string);
 
-  const data: Ponto = rawData;
+  const data: Local = rawData;
 
-  const local = await createOrGetLocal(rawData.local!);
+  const endereco = await createOrGetEndereco(rawData.endereco!);
   const usuario = await createOrGetUsuario(rawData.usuario!);
 
-  await prisma.ponto.create({
+  await prisma.local.create({
     data: {
       nome: data.nome,
       slug: data.slug,
       lat: new Prisma.Decimal(data.lat),
       lng: new Prisma.Decimal(data.lng),
       apelidos: { createMany: { data: data.apelidos } },
-      social: { createMany: { data: data.social } },
-      localId: local.id,
+      redesSociais: { createMany: { data: data.redesSociais } },
+      enderecoId: endereco.id,
       usuarioId: usuario.id,
     },
   });
 }
 
-async function createOrGetLocal(rawData: Local) {
-  return await prisma.local.upsert({
+async function createOrGetEndereco(rawData: Endereco) {
+  return await prisma.endereco.upsert({
     where: { posicao: { lat: new Prisma.Decimal(rawData.lat), lng: new Prisma.Decimal(rawData.lng) } },
     update: {},
     create: {

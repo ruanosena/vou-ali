@@ -4,8 +4,8 @@ import { getDistanceFromLatLonInKm } from "@/lib/utils";
 import { Pesquisa } from "@/types";
 import { Prisma } from "@prisma/client";
 
-type QueryPontoResult = Awaited<ReturnType<typeof queryPonto>>;
 type QueryLocalResult = Awaited<ReturnType<typeof queryLocal>>;
+type QueryEnderecoResult = Awaited<ReturnType<typeof queryEndereco>>;
 
 export interface SearchResponse {
   error?: string;
@@ -54,22 +54,22 @@ export async function GET(req: Request, { params }: { params: { location: string
       return Response.json(payload, { status: 404 });
     }
     // Finds within the area
-    payload.data = formatPonto(await queryPontoByBoundingBox(bounds));
+    payload.data = formatLocal(await queryLocalByBoundingBox(bounds));
 
     if (payload.data.length < MAX_SUGGESTIONS) {
       const whatsLeft = MAX_SUGGESTIONS - payload.data.length;
-      const leftPayload = formatLocal(await queryLocalByBoundingBox(bounds, whatsLeft));
+      const leftPayload = formatEndereco(await queryEnderecoByBoundingBox(bounds, whatsLeft));
       payload.data = payload.data.concat(leftPayload);
     }
     // Sorts by straight-line distance
     payload.data = sortByDistance(payload.data, lat, lng);
   } else {
     // Finds by the query
-    payload.data = formatPonto(await queryPontoByTextInput(query));
+    payload.data = formatLocal(await queryLocalByTextInput(query));
 
     if (payload.data.length < MAX_SUGGESTIONS) {
       const whatsLeft = MAX_SUGGESTIONS - payload.data.length;
-      const leftPayload = formatLocal(await queryLocalByTextInput(query, whatsLeft));
+      const leftPayload = formatEndereco(await queryEnderecoByTextInput(query, whatsLeft));
       payload.data = payload.data.concat(leftPayload);
     }
   }
@@ -77,9 +77,9 @@ export async function GET(req: Request, { params }: { params: { location: string
   return Response.json(payload, { status: 200 });
 }
 
-async function queryPonto(where: Prisma.PontoWhereInput, take: number) {
+async function queryLocal(where: Prisma.LocalWhereInput, take: number) {
   try {
-    const results = await prisma.ponto.findMany({
+    const results = await prisma.local.findMany({
       take,
       select: { id: true, nome: true, lat: true, lng: true },
       where: { publicado: true, ...where },
@@ -91,9 +91,9 @@ async function queryPonto(where: Prisma.PontoWhereInput, take: number) {
   }
 }
 
-async function queryLocal(where: Prisma.LocalWhereInput, take: number) {
+async function queryEndereco(where: Prisma.EnderecoWhereInput, take: number) {
   try {
-    const results = await prisma.local.findMany({
+    const results = await prisma.endereco.findMany({
       take,
       select: { id: true, enderecoFormatado: true, lat: true, lng: true },
       where,
@@ -106,25 +106,7 @@ async function queryLocal(where: Prisma.LocalWhereInput, take: number) {
   }
 }
 
-async function queryPontoByBoundingBox(bBox: google.maps.LatLngBoundsLiteral, quantity = MAX_SUGGESTIONS) {
-  try {
-    const results = await queryPonto(
-      {
-        AND: [
-          { lat: { lte: bBox.north }, lng: { lte: bBox.east } },
-          { lat: { gte: bBox.south }, lng: { gte: bBox.west } },
-        ],
-      },
-      quantity,
-    );
-    return results;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-}
-
-async function queryLocalByBoundingBox(bBox: google.maps.LatLngBoundsLiteral, quantity: number) {
+async function queryLocalByBoundingBox(bBox: google.maps.LatLngBoundsLiteral, quantity = MAX_SUGGESTIONS) {
   try {
     const results = await queryLocal(
       {
@@ -142,9 +124,27 @@ async function queryLocalByBoundingBox(bBox: google.maps.LatLngBoundsLiteral, qu
   }
 }
 
-async function queryPontoByTextInput(text: string, quantity = MAX_SUGGESTIONS) {
+async function queryEnderecoByBoundingBox(bBox: google.maps.LatLngBoundsLiteral, quantity: number) {
   try {
-    const results = await queryPonto(
+    const results = await queryEndereco(
+      {
+        AND: [
+          { lat: { lte: bBox.north }, lng: { lte: bBox.east } },
+          { lat: { gte: bBox.south }, lng: { gte: bBox.west } },
+        ],
+      },
+      quantity,
+    );
+    return results;
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}
+
+async function queryLocalByTextInput(text: string, quantity = MAX_SUGGESTIONS) {
+  try {
+    const results = await queryLocal(
       {
         OR: [
           {
@@ -180,9 +180,9 @@ async function queryPontoByTextInput(text: string, quantity = MAX_SUGGESTIONS) {
   }
 }
 
-async function queryLocalByTextInput(text: string, quantity: number) {
+async function queryEnderecoByTextInput(text: string, quantity: number) {
   try {
-    const results = await queryLocal(
+    const results = await queryEndereco(
       {
         enderecoFormatado: {
           contains: text,
@@ -198,20 +198,20 @@ async function queryLocalByTextInput(text: string, quantity: number) {
   }
 }
 
-function formatPonto(data: QueryPontoResult) {
-  return data.map<Pesquisa>((ponto) => ({
-    id: ponto.id,
-    tipo: "Ponto",
-    nome: ponto.nome,
-    lat: ponto.lat.toNumber(),
-    lng: ponto.lat.toNumber(),
-  }));
-}
-
 function formatLocal(data: QueryLocalResult) {
   return data.map<Pesquisa>((local) => ({
     id: local.id,
     tipo: "Local",
+    nome: local.nome,
+    lat: local.lat.toNumber(),
+    lng: local.lat.toNumber(),
+  }));
+}
+
+function formatEndereco(data: QueryEnderecoResult) {
+  return data.map<Pesquisa>((local) => ({
+    id: local.id,
+    tipo: "Endereco",
     nome: local.enderecoFormatado,
     lat: local.lat.toNumber(),
     lng: local.lat.toNumber(),
