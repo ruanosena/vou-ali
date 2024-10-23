@@ -15,7 +15,7 @@ interface GeoProviderState {
   isDefaultLocationBias: boolean;
   geometryAvailable: boolean;
   mapsGetBoundingBox: (lat: number, lng: number, radius?: number) => google.maps.LatLngBoundsLiteral;
-  promptGeolocation: (callbackOnAccept?: () => void) => void;
+  promptGeolocation: (callbackOnSuccess?: (() => void) | null, callbackOnError?: (() => void) | null) => void;
 }
 
 const initialState: GeoProviderState = {
@@ -46,8 +46,8 @@ export function GeoProvider({ children, ...props }: GeoProviderProps) {
   const geometry = useMapsLibrary("geometry");
 
   const mapsGetBoundingBox = useCallback(
-    (lat: number, lng: number, radius = 10000): google.maps.LatLngBoundsLiteral => {
-      // Create a bounding box with sides ~10km (default) away from the coordinates
+    (lat: number, lng: number, radius = 1500): google.maps.LatLngBoundsLiteral => {
+      // Create a bounding box with sides ~1.5km (default) away from the coordinates
       const bounds = new google.maps.LatLngBounds();
       [0, 90, 180, 270].forEach((angle) => {
         const side = geometry!.spherical.computeOffset({ lat, lng }, radius, angle);
@@ -58,15 +58,20 @@ export function GeoProvider({ children, ...props }: GeoProviderProps) {
     [geometry],
   );
 
-  const promptGeolocation = useCallback((onAccept?: () => void) => {
+  const promptGeolocation = useCallback((onSuccess?: (() => void) | null, onError?: (() => void) | null) => {
     if ("geolocation" in navigator) {
       // Retrieve latitude & longitude coordinates from `navigator.geolocation` Web API
-      navigator.geolocation.getCurrentPosition(({ coords }) => {
-        const { latitude, longitude } = coords;
-        setLocation({ lat: latitude, lng: longitude });
-        setIsDefaultLocation(false);
-        onAccept && onAccept();
-      });
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => {
+          const { latitude, longitude } = coords;
+          setLocation({ lat: latitude, lng: longitude });
+          setIsDefaultLocation(false);
+          onSuccess && onSuccess();
+        },
+        () => {
+          onError && onError();
+        },
+      );
     }
   }, []);
 

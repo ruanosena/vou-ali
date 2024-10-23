@@ -8,8 +8,8 @@ interface Props extends LucideProps {
 
 export default function SearchResultIcon({ tipo, className, ...props }: Props) {
   if (tipo === "Local") {
-    return <MapPin className={cn("mr-3.5 size-5 text-input group-hover:text-primary/80", className)} {...props} />;
+    return <MapPin className={cn("size-5 text-input group-hover:text-primary/80", className)} {...props} />;
   } else if (tipo === "Endereco") {
-    return <Pin className={cn("mr-3.5 size-5 text-input group-hover:text-primary/80", className)} {...props} />;
+    return <Pin className={cn("size-5 text-input group-hover:text-primary/80", className)} {...props} />;
   } else return null;
 }

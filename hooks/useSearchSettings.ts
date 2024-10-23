@@ -59,7 +59,11 @@ export const useSearchSettings = (storageKey = "@ruanosena:search-settings-0.1.0
   }, []);
 
   useEffect(() => {
-    if (geolocationOn && isDefaultLocation) promptGeolocation();
+    if (geolocationOn && isDefaultLocation)
+      promptGeolocation(null, () => {
+        setLocalStorageKey("geolocation", false);
+        setGeolocationOn(false);
+      });
   }, [geolocationOn, isDefaultLocation]);
 
   return { geolocationOn, sortByDistanceOn, handleChangeGeolocationOn, handleChangeSortByDistance };

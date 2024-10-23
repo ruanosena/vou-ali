@@ -59,11 +59,10 @@ export function Search({ location: locationProps, className, ...props }: Props) 
           Object.entries(locationBias).forEach(([key, value]) => searchParams.append(key, encodeURIComponent(value)));
       } else if (locationProps) {
         url += `/${locationProps.lat},${locationProps.lng}`;
-
         if (!value)
-          Object.entries(mapsGetBoundingBox(locationProps.lat, locationProps.lng)).forEach(([key, value]) =>
-            searchParams.append(key, encodeURIComponent(value)),
-          );
+          Object.entries(
+            mapsGetBoundingBox(locationProps.lat, locationProps.lng, 5000 /* 5km distance from IP Location */),
+          ).forEach(([key, value]) => searchParams.append(key, encodeURIComponent(value)));
       } else {
         return;
       }
@@ -93,7 +92,7 @@ export function Search({ location: locationProps, className, ...props }: Props) 
 
       if (!scheduled.current) {
         setTimeout(async () => {
-          await search(scheduled.current!);
+          if (scheduled.current) await search(scheduled.current);
           scheduled.current = null;
         }, 250);
       } else {
@@ -214,9 +213,9 @@ export function Search({ location: locationProps, className, ...props }: Props) 
             {results.length ? (
               results.map((pesquisa) => (
                 <div key={pesquisa.id} className="group hover:bg-input">
-                  <div className="ml-3.5 mr-5 flex items-center py-1.5 text-lg/7">
-                    <SearchResultIcon tipo={pesquisa.tipo} />
-                    <span className="cursor-default group-hover:text-primary">{pesquisa.nome}</span>
+                  <div className="mx-2 flex items-center py-1.5 text-lg/7 md:mx-3">
+                    <SearchResultIcon className="mr-2 shrink-0 sm:mr-3.5" tipo={pesquisa.tipo} />
+                    <span className="cursor-default truncate group-hover:text-primary">{pesquisa.nome}</span>
                   </div>
                 </div>
               ))

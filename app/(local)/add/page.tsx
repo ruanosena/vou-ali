@@ -96,7 +96,7 @@ export default function AddLocal() {
           const socialLinks = formData.getAll("socialLink");
           formData.delete("socialLink");
           const social = socialNomes.map((nome, index) => ({ nome, link: socialLinks[index] }));
-          formData.append("social", JSON.stringify(social));
+          formData.append("redesSociais", JSON.stringify(social));
 
           const formDataObj = Object.fromEntries(formData.entries());
 

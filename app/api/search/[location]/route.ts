@@ -90,7 +90,7 @@ async function queryLocal(where: Prisma.LocalWhereInput, take: number) {
     });
     return results;
   } catch (error) {
-    // console.error(error);
+    console.error(error);
     return [];
   }
 }
@@ -105,7 +105,7 @@ async function queryEndereco(where: Prisma.EnderecoWhereInput, take: number) {
     });
     return results;
   } catch (error) {
-    // console.error(error);
+    console.error(error);
     return [];
   }
 }
