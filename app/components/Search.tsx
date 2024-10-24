@@ -1,7 +1,7 @@
 "use client";
 import { useGeo } from "@/contexts/GeoContext";
 import { cn, formatDistancia } from "@/lib/utils";
-import { HTMLAttributes, useCallback, useEffect, useRef, useState } from "react";
+import { HTMLAttributes, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Pesquisa } from "@/types";
@@ -34,6 +34,8 @@ export function Search({ location: locationProps, className, ...props }: Props) 
   const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState("");
 
+  const router = useRouter();
+
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -53,7 +55,30 @@ export function Search({ location: locationProps, className, ...props }: Props) 
     handleChangeCalcDistance,
   } = useSearchSettings();
 
-  const router = useRouter();
+  const previousIsSettingsOpen = useRef(isSettingsOpen);
+  const previousGeolocationOn = useRef(geolocationOn);
+  const previousSortByDistanceOn = useRef(sortByDistanceOn);
+  const previousCalcDistanceOn = useRef(calcDistanceOn);
+
+  const settingsChanged = useMemo(() => {
+    // track if any settings changed
+    if (isSettingsOpen && previousIsSettingsOpen.current === false) {
+      previousCalcDistanceOn.current = calcDistanceOn;
+      previousGeolocationOn.current = geolocationOn;
+      previousSortByDistanceOn.current = sortByDistanceOn;
+      return false;
+    }
+    if (!isSettingsOpen && previousIsSettingsOpen.current === true) {
+      return (
+        previousCalcDistanceOn.current !== calcDistanceOn ||
+        previousGeolocationOn.current !== geolocationOn ||
+        previousSortByDistanceOn.current !== sortByDistanceOn
+      );
+    }
+    return false;
+  }, [calcDistanceOn, geolocationOn, sortByDistanceOn, isSettingsOpen]);
+
+  const previousSettingsChanged = useRef(settingsChanged);
 
   const handleClickPesquisa = useCallback(
     (pesquisa: Pesquisa) => {
@@ -137,13 +162,24 @@ export function Search({ location: locationProps, className, ...props }: Props) 
   );
 
   useEffect(() => {
-    // get initial suggestions, also when locationBias changes
-    if (geometryAvailable) search("");
-  }, [geometryAvailable, isDefaultLocationBias]);
+    if (settingsChanged === true) {
+      search(""); // get initial suggestions every changes in settings
+    } else if (previousSettingsChanged.current === false && geometryAvailable) {
+      search(""); // get initial suggestions, also when locationBias changes
+    }
+  }, [geometryAvailable, isDefaultLocationBias, settingsChanged]);
 
   useEffect(() => {
     if (!inputValue) setResults(initialResults);
   }, [initialResults, inputValue]);
+
+  useEffect(() => {
+    previousIsSettingsOpen.current = isSettingsOpen;
+  }, [isSettingsOpen]);
+
+  useEffect(() => {
+    previousSettingsChanged.current = settingsChanged;
+  }, [settingsChanged]);
 
   return (
     <div className={cn("flex min-h-screen flex-col items-center bg-secondary-foreground", className)} {...props}>
@@ -154,7 +190,7 @@ export function Search({ location: locationProps, className, ...props }: Props) 
               Configurações de Pesquisa
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-80 border-border bg-secondary-foreground text-popover">
+          <DialogContent className="max-w-96 border-border bg-secondary-foreground text-popover">
             <DialogHeader>
               <DialogTitle>Pesquisa</DialogTitle>
               <DialogDescription>Configure a pesquisa aqui.</DialogDescription>
@@ -190,7 +226,7 @@ export function Search({ location: locationProps, className, ...props }: Props) 
               </div>
               <div className="grid grid-cols-3 items-center gap-4">
                 <Label htmlFor="distancia" className="col-span-2 text-right text-base">
-                  Calcular distância reta
+                  Exibir distância em reta
                 </Label>
                 <div className="flex justify-end gap-2">
                   <span className="text-sm uppercase text-muted-foreground">{calcDistanceOn ? "on" : "off"}</span>

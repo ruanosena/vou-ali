@@ -228,8 +228,14 @@ function formatEndereco(data: QueryEnderecoResult, originLat?: number, originLng
   }));
 }
 
-function sortByDistance<T extends { lat: number; lng: number }[]>(data: T, lat: number, lng: number) {
+function sortByDistance<T extends { lat: number; lng: number; distancia?: number }[]>(
+  data: T,
+  lat: number,
+  lng: number,
+) {
   return data.sort(
-    (a, b) => getDistanceFromLatLonInKm(b.lat, b.lng, lat, lng) - getDistanceFromLatLonInKm(a.lat, a.lng, lat, lng),
+    (a, b) =>
+      (a.distancia || getDistanceFromLatLonInKm(a.lat, a.lng, lat, lng)) -
+      (b.distancia || getDistanceFromLatLonInKm(b.lat, b.lng, lat, lng)),
   );
 }
