@@ -1,19 +1,9 @@
-import prisma from "@/lib/prisma";
 import { GeoCookieValue } from "@/types";
 import { cookies } from "next/headers";
 import { Fragment } from "react";
 import { Search } from "./components/Search";
 
-async function getLocais() {
-  const locais = prisma.endereco.findMany({
-    where: { locais: { every: { publicado: true } } },
-    include: { locais: { select: { nome: true, id: true } } },
-  });
-  return locais;
-}
-
 export default async function Home() {
-  // const locais = await getLocais();
   const geoCookie = cookies().get("geo");
   let geo: GeoCookieValue | undefined;
   if (geoCookie) geo = JSON.parse(decodeURIComponent(geoCookie.value));

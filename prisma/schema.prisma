@@ -40,7 +40,7 @@ model Local {
   lat               Decimal
   lng               Decimal
   nome              String
-  slug              String
+  slug              String         @unique
   apelidos          LocalApelido[]
   endereco          Endereco       @relation(fields: [enderecoId], references: [id])
   enderecoId        String         @map("endereco_id")
@@ -51,6 +51,8 @@ model Local {
   publicado         Boolean        @default(false)
   usuario           Usuario        @relation(fields: [usuarioId], references: [id])
   usuarioId         Int            @map("usuario_id")
+
+  @@index([slug])
 }
 
 model LocalApelido {

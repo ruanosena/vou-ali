@@ -34,6 +34,7 @@ export async function GET(req: Request, { params }: { params: { location: string
   const { searchParams } = new URL(req.url);
   const queryParam = decodeURIComponent(searchParams.get("q") ?? "").trim();
   const sortByDistanceParam = decodeURIComponent(searchParams.get("sd") ?? "").trim() === "true" ? true : false;
+  const calcDistanceParam = decodeURIComponent(searchParams.get("cd") ?? "").trim() === "true" ? true : false;
 
   if (queryParam && !/(?:(?![×Þß÷þø])[-_'0-9a-zÀ-ÿ])+/i.test(queryParam)) {
     // query text doesn't have a character (letter|number) with accents or not
@@ -55,20 +56,36 @@ export async function GET(req: Request, { params }: { params: { location: string
       return Response.json(payload, { status: 404 });
     }
     // Finds within the area
-    payload.data = formatLocal(await queryLocalByBoundingBox(bounds));
+    payload.data = formatLocal(
+      await queryLocalByBoundingBox(bounds),
+      calcDistanceParam ? lat : undefined,
+      calcDistanceParam ? lng : undefined,
+    );
 
     if (payload.data.length < MAX_SUGGESTIONS) {
       const whatsLeft = MAX_SUGGESTIONS - payload.data.length;
-      const leftPayload = formatEndereco(await queryEnderecoByBoundingBox(bounds, whatsLeft));
+      const leftPayload = formatEndereco(
+        await queryEnderecoByBoundingBox(bounds, whatsLeft),
+        calcDistanceParam ? lat : undefined,
+        calcDistanceParam ? lng : undefined,
+      );
       payload.data = payload.data.concat(leftPayload);
     }
   } else {
     // Finds by the query
-    payload.data = formatLocal(await queryLocalByTextInput(queryParam));
+    payload.data = formatLocal(
+      await queryLocalByTextInput(queryParam),
+      calcDistanceParam ? lat : undefined,
+      calcDistanceParam ? lng : undefined,
+    );
 
     if (payload.data.length < MAX_SUGGESTIONS) {
       const whatsLeft = MAX_SUGGESTIONS - payload.data.length;
-      const leftPayload = formatEndereco(await queryEnderecoByTextInput(queryParam, whatsLeft));
+      const leftPayload = formatEndereco(
+        await queryEnderecoByTextInput(queryParam, whatsLeft),
+        calcDistanceParam ? lat : undefined,
+        calcDistanceParam ? lng : undefined,
+      );
       payload.data = payload.data.concat(leftPayload);
     }
   }
@@ -85,7 +102,7 @@ async function queryLocal(where: Prisma.LocalWhereInput, take: number) {
   try {
     const results = await prisma.local.findMany({
       take,
-      select: { id: true, nome: true, lat: true, lng: true },
+      select: { id: true, nome: true, lat: true, lng: true, slug: true },
       where: { publicado: true, ...where },
     });
     return results;
@@ -100,8 +117,7 @@ async function queryEndereco(where: Prisma.EnderecoWhereInput, take: number) {
     const results = await prisma.endereco.findMany({
       take,
       select: { id: true, enderecoFormatado: true, lat: true, lng: true },
-      where,
-      // TODO: add not empty string
+      where: { locais: { some: { publicado: true } }, ...where },
     });
     return results;
   } catch (error) {
@@ -130,6 +146,7 @@ async function queryEnderecoByBoundingBox(bBox: google.maps.LatLngBoundsLiteral,
         { lat: { lte: bBox.north }, lng: { lte: bBox.east } },
         { lat: { gte: bBox.south }, lng: { gte: bBox.west } },
       ],
+      enderecoFormatado: { not: "" },
     },
     quantity,
   );
@@ -182,23 +199,32 @@ async function queryEnderecoByTextInput(text: string, quantity: number) {
   return results;
 }
 
-function formatLocal(data: QueryLocalResult) {
+function formatLocal(data: QueryLocalResult, originLat?: number, originLng?: number) {
   return data.map<Pesquisa>((local) => ({
     id: local.id,
+    slug: local.slug,
     tipo: "Local",
     nome: local.nome,
     lat: local.lat.toNumber(),
     lng: local.lat.toNumber(),
+    distancia:
+      originLat &&
+      originLng &&
+      getDistanceFromLatLonInKm(originLat, originLng, local.lat.toNumber(), local.lng.toNumber()),
   }));
 }
 
-function formatEndereco(data: QueryEnderecoResult) {
+function formatEndereco(data: QueryEnderecoResult, originLat?: number, originLng?: number) {
   return data.map<Pesquisa>((local) => ({
     id: local.id,
     tipo: "Endereco",
     nome: local.enderecoFormatado,
     lat: local.lat.toNumber(),
     lng: local.lat.toNumber(),
+    distancia:
+      originLat &&
+      originLng &&
+      getDistanceFromLatLonInKm(originLat, originLng, local.lat.toNumber(), local.lng.toNumber()),
   }));
 }
 
