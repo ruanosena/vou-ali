@@ -1,7 +1,11 @@
 import prisma from "@/lib/prisma";
-import { Endereco, isEndereco, isLocal, Local } from "@/types";
+import { Endereco, GeoCookieValue, isEndereco, isLocal, Local } from "@/types";
 import { notFound } from "next/navigation";
 import { transformEndereco, transformLocal } from "@/lib/utils";
+import MapPlacesEndereco from "../components/MapPlaces/MapPlacesEndereco";
+import MapPlacesLocal from "../components/MapPlaces/MapPlacesLocal";
+import { Fragment } from "react";
+import { cookies } from "next/headers";
 
 async function queryLocal(slug: string) {
   const result = await prisma.local.findUnique({
@@ -39,14 +43,18 @@ export default async function LocalPage({
 }: {
   params: { localSlugOrEnderecoId: string };
 }) {
+  const geoCookie = cookies().get("geo");
+  let geo: GeoCookieValue | undefined;
+  if (geoCookie) geo = JSON.parse(decodeURIComponent(geoCookie.value));
+
   const data = await getPlace(localSlugOrEnderecoId);
 
   if (!data) return notFound();
 
   return (
-    <div>
-      page {data?.id}
-      <code>{JSON.stringify(data, null, 2)}</code>
-    </div>
+    <Fragment>
+      {isEndereco(data) && <MapPlacesEndereco data={data} {...(geo?.lat && geo.lng && { location: geo })} />}
+      {isLocal(data) && <MapPlacesLocal data={data} {...(geo?.lat && geo.lng && { location: geo })} />}
+    </Fragment>
   );
 }

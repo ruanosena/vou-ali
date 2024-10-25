@@ -2,8 +2,7 @@
 import { MapPlaceMark } from "@/app/components/MapPlaceMark";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { XMarkIcon } from "@heroicons/react/20/solid";
-import { MAX_APELIDOS, SOCIAL_LINKS_PLACEHOLDERS } from "@/lib/constants";
-import { RedeSocialNome } from "@/types";
+import { MAX_APELIDOS, REDE_SOCIAL_NOME, REDE_SOCIAL_PLACEHOLDER } from "@/lib/constants";
 import { createLocal } from "@/lib/actions";
 import { useMarker } from "@/contexts/MarkerContext";
 import { initialState, reducer, REDUCER_ACTION_TYPE } from "@/lib/slices/socialSlice";
@@ -26,8 +25,8 @@ export default function AddLocal() {
   const [socialState, socialDispatch] = useReducer(reducer, initialState);
 
   const handleSocialRemove = useCallback(
-    (value: RedeSocialNome) => {
-      const usedIndex = socialState.used.findIndex(([_, uValue]) => uValue === value);
+    (key: keyof typeof REDE_SOCIAL_NOME) => {
+      const usedIndex = socialState.used.findIndex(([usedKey]) => usedKey === key);
       if (usedIndex > -1) socialDispatch({ type: REDUCER_ACTION_TYPE.REMOVE, payload: usedIndex });
     },
     [socialState.used],
@@ -354,28 +353,28 @@ export default function AddLocal() {
               <h2 className="font-semibold leading-7 text-gray-900">Social</h2>
               <p className="mt-1 leading-6 text-gray-600">Conecte as redes sociais</p>
               <div className="mt-6 space-y-6">
-                {socialState.used.map(([key, value], index) => (
+                {socialState.used.map(([key, value]) => (
                   <div key={value} className="flex flex-col gap-x-2 sm:flex-row">
                     <input
                       type="text"
-                      defaultValue={key}
+                      defaultValue={value}
                       className="block max-w-36 rounded-md border-0 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 invalid:ring-red-500 read-only:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-lg sm:leading-6 lg:max-w-48"
                       readOnly
                     />
-                    <input name="socialNome" type="hidden" value={value} />
+                    <input name="socialNome" type="hidden" value={key} />
 
                     <div className="flex flex-1 gap-x-2">
                       <input
                         name="socialLink"
                         type="url"
                         autoComplete="url"
-                        placeholder={SOCIAL_LINKS_PLACEHOLDERS[value]}
+                        placeholder={REDE_SOCIAL_PLACEHOLDER[key]}
                         className="inline-block w-full rounded-md border-0 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-lg sm:leading-6"
                       />
                       <button
                         type="button"
                         className="rounded-md px-3.5 py-2.5 text-center text-sm font-semibold outline-none ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600"
-                        onClick={() => handleSocialRemove(value)}
+                        onClick={() => handleSocialRemove(key)}
                       >
                         <XMarkIcon className="size-5" />
                       </button>
@@ -392,8 +391,8 @@ export default function AddLocal() {
                       -rede social-
                     </option>
                     {socialState.available.map(([aKey, aValue]) => (
-                      <option key={`option-${aValue}`} value={aValue}>
-                        {aKey}
+                      <option key={`option-${aKey}`} value={aValue}>
+                        {aValue}
                       </option>
                     ))}
                   </select>

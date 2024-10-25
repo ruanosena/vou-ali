@@ -12,7 +12,7 @@ export default async function Home() {
     <Fragment>
       <Search
         // avoids cookie without coords
-        {...(geo?.lat && geo.lng && { location: { lat: geo.lat, lng: geo.lng } })}
+        {...(geo?.lat && geo.lng && { location: geo })}
       />
 
       <section className="flex min-h-screen items-center bg-background">

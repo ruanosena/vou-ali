@@ -1,3 +1,5 @@
+import { $Enums, Prisma } from "@prisma/client";
+
 export type PesquisaTipo = "Endereco" | "Local";
 export interface Pesquisa {
   id: string;
@@ -51,20 +53,14 @@ export interface Usuario {
 }
 
 export interface LocalApelido {
+  id: number;
   apelido: string;
 }
 
 export interface RedeSocial {
-  nome: RedeSocialNome;
+  id: string;
+  nome: $Enums.RedeSocialNome;
   link: string;
-}
-
-export enum RedeSocialNome {
-  WhatsApp = "WHATSAPP",
-  Instagram = "INSTAGRAM",
-  Facebook = "FACEBOOK",
-  Telegram = "TELEGRAM",
-  "E-mail" = "EMAIL",
 }
 
 export type GeoCookieValue = {

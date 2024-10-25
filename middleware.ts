@@ -5,7 +5,10 @@ import { GeoCookieValue } from "./types";
 export async function middleware(request: NextRequest) {
   // Middleware to handle the 'geo' cookie for use in homepage search
   const { nextUrl: url } = request;
-  if (url.pathname === "/") {
+  // path matches dynamic route
+  const path = /^\/([^\/]+)$/.exec(url.pathname);
+  // pathname is home or path (exclude files)
+  if (url.pathname === "/" || (path && !/\.[A-Za-z]{3}$/.test(path[1]))) {
     // ip geo present with Vercel, https://vercel.com/templates/next.js/edge-functions-geolocation
     if (request.ip && request.geo) {
       // Getting cookies from the request using the `RequestCookies` API

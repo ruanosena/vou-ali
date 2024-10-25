@@ -1,8 +1,8 @@
-import { RedeSocialNome } from "@/types";
+import { REDE_SOCIAL_NOME } from "../constants";
 
-type SocialEntry = ReturnType<typeof Object.entries<RedeSocialNome>>[number];
+type SocialEntry = [keyof typeof REDE_SOCIAL_NOME, (typeof REDE_SOCIAL_NOME)[keyof typeof REDE_SOCIAL_NOME]];
 
-export const initialState = { available: Object.entries(RedeSocialNome), used: [] } as {
+export const initialState = { available: Object.entries(REDE_SOCIAL_NOME), used: [] } as {
   available: SocialEntry[];
   used: SocialEntry[];
 };
