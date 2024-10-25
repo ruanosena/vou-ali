@@ -9,6 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export class Timer {
   active: boolean;
+  complete: boolean;
   timeout: NodeJS.Timeout;
   /**
    * @param {Function} callback
@@ -16,9 +17,11 @@ export class Timer {
    *  */
   constructor(callback: Function, interval?: number) {
     this.active = true;
+    this.complete = false;
     this.timeout = setTimeout(() => {
       callback();
       this.active = false;
+      this.complete = true;
     }, interval);
   }
   clear() {

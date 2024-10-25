@@ -1,6 +1,6 @@
 "use client";
 import { useGeo } from "@/contexts/GeoContext";
-import { cn, formatDistancia } from "@/lib/utils";
+import { cn, formatDistancia, Timer } from "@/lib/utils";
 import { HTMLAttributes, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -42,7 +42,7 @@ export function Search({ location: locationProps, className, ...props }: Props) 
   const [initialResults, setInitialResults] = useState<Pesquisa[]>([]);
   const [results, setResults] = useState<Pesquisa[]>([]);
 
-  const [searchDebounce, setSearchDebounce] = useState<NodeJS.Timeout>();
+  const [searchDebounce, setSearchDebounce] = useState<Timer>();
   const scheduled = useRef<string | null>(null);
   const lastSearch = useRef("");
 
@@ -140,18 +140,19 @@ export function Search({ location: locationProps, className, ...props }: Props) 
       if (!value) return;
       value = encodeURIComponent(value);
 
-      clearTimeout(searchDebounce);
+      searchDebounce?.clear();
       if (value === lastSearch.current) return;
 
       if (!scheduled.current) {
         setTimeout(async () => {
           if (scheduled.current) await search(scheduled.current);
           scheduled.current = null;
+          if (searchDebounce && !searchDebounce.active) searchDebounce.complete = true;
         }, 250);
       } else {
         // debounce at the end of typing
         setSearchDebounce(
-          setTimeout(async () => {
+          new Timer(async () => {
             await search(value);
           }, 400),
         );
@@ -260,7 +261,7 @@ export function Search({ location: locationProps, className, ...props }: Props) 
       </div>
 
       <div className="relative w-full min-w-72 max-w-xl p-5">
-        <Popover open={isSearchOpen}>
+        <Popover open={isSearchOpen && (!!results.length || !!searchDebounce?.complete || !inputValue)}>
           <PopoverTrigger asChild>
             <label className="flex items-center rounded-md bg-muted-foreground pr-3 data-[state=open]:rounded-b-none">
               <SearchIcon className="mx-2 size-6 text-input md:mx-3" />
@@ -302,14 +303,16 @@ export function Search({ location: locationProps, className, ...props }: Props) 
                   </div>
                 </div>
               ))
-            ) : inputValue ? (
+            ) : inputValue && searchDebounce?.complete ? (
               <span className="ml-3.5 mr-5 flex items-center justify-center py-1.5 text-lg/7">
                 Nenhum resultado encontrado 😕
               </span>
             ) : (
-              <span className="ml-3.5 mr-5 flex items-center justify-center py-1.5 text-lg/7">
-                Pesquise como você ouviu falar 🗣️
-              </span>
+              !inputValue && (
+                <span className="ml-3.5 mr-5 flex items-center justify-center py-1.5 text-lg/7">
+                  Pesquise como você ouviu falar 🗣️
+                </span>
+              )
             )}
           </PopoverContent>
         </Popover>
