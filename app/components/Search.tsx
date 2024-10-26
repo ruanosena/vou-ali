@@ -92,6 +92,7 @@ export function Search({ location: locationProps, className, ...props }: Props) 
   const search = useCallback(
     async (value: string) => {
       // if value is a empty string, then fetches initial suggestions
+      const initialSuggestions = value === "";
       let url = "/api/search";
 
       const searchParams = new URLSearchParams({ q: value, sd: String(sortByDistanceOn), cd: String(calcDistanceOn) });
@@ -99,11 +100,11 @@ export function Search({ location: locationProps, className, ...props }: Props) 
       if (geolocationOn && !isDefaultLocationBias) {
         url += `/${location.lat},${location.lng}`;
 
-        if (!value)
+        if (initialSuggestions)
           Object.entries(locationBias).forEach(([key, value]) => searchParams.append(key, encodeURIComponent(value)));
       } else if (locationProps) {
         url += `/${locationProps.lat},${locationProps.lng}`;
-        if (!value)
+        if (initialSuggestions)
           Object.entries(
             mapsGetBoundingBox(locationProps.lat, locationProps.lng, 5000 /* 5km distance from IP Location */),
           ).forEach(([key, value]) => searchParams.append(key, encodeURIComponent(value)));
@@ -117,8 +118,8 @@ export function Search({ location: locationProps, className, ...props }: Props) 
 
       lastSearch.current = value;
       if (data) {
-        if (!value) setInitialResults(data);
-        else setResults(data);
+        if (initialSuggestions) setInitialResults(data);
+        else if (scheduled.current !== "") setResults(data);
       }
     },
     [
@@ -146,7 +147,7 @@ export function Search({ location: locationProps, className, ...props }: Props) 
       if (!scheduled.current) {
         setTimeout(async () => {
           if (scheduled.current) await search(scheduled.current);
-          scheduled.current = null;
+          if (scheduled.current) scheduled.current = null; // keeps not-assign-response flag
           if (searchDebounce && !searchDebounce.active) searchDebounce.complete = true;
         }, 250);
       } else {
@@ -171,8 +172,11 @@ export function Search({ location: locationProps, className, ...props }: Props) 
   }, [geometryAvailable, isDefaultLocationBias, settingsChanged]);
 
   useEffect(() => {
-    if (!inputValue) setResults(initialResults);
-  }, [initialResults, inputValue]);
+    if (!inputValue) {
+      scheduled.current = ""; // flag to not-assign-response data but use initial results (lasts until other input)
+      setResults(initialResults);
+    }
+  }, [initialResults, inputValue, searchDebounce]);
 
   useEffect(() => {
     previousIsSettingsOpen.current = isSettingsOpen;
