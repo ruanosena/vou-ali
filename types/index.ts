@@ -1,5 +1,13 @@
 import { $Enums, Prisma } from "@prisma/client";
 
+type Marcador = {
+  id: string;
+  lat: number;
+  lng: number;
+  zIndex: number;
+};
+export interface Ponto extends Required<Pick<Endereco, "locais">>, Marcador {}
+
 export type PesquisaTipo = "Endereco" | "Local";
 export interface Pesquisa {
   id: string;
@@ -20,7 +28,7 @@ export interface Endereco {
   sul?: number | null;
   leste?: number | null;
   oeste?: number | null;
-  locais?: Local[];
+  locais?: Omit<Local, "apelidos" | "redesSociais" | "endereco">[];
 }
 
 export function isEndereco(data: Endereco | Local): data is Endereco {

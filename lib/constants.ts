@@ -19,3 +19,5 @@ export const REDE_SOCIAL_PLACEHOLDER: Record<$Enums.RedeSocialNome, string> = {
 };
 
 export const MAX_SUGGESTIONS = 8;
+
+export const MAX_PONTOS = 50;
