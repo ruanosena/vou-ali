@@ -206,7 +206,7 @@ function formatLocal(data: QueryLocalResult, originLat?: number, originLng?: num
     tipo: "Local",
     nome: local.nome,
     lat: local.lat.toNumber(),
-    lng: local.lat.toNumber(),
+    lng: local.lng.toNumber(),
     distancia:
       originLat &&
       originLng &&
@@ -220,7 +220,7 @@ function formatEndereco(data: QueryEnderecoResult, originLat?: number, originLng
     tipo: "Endereco",
     nome: local.enderecoFormatado,
     lat: local.lat.toNumber(),
-    lng: local.lat.toNumber(),
+    lng: local.lng.toNumber(),
     distancia:
       originLat &&
       originLng &&

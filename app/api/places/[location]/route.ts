@@ -79,7 +79,7 @@ function formatLocal(local: QueryEnderecoResult[number]["locais"][number]) {
   return {
     ...local,
     lat: local.lat.toNumber(),
-    lng: local.lat.toNumber(),
+    lng: local.lng.toNumber(),
   };
 }
 
@@ -92,7 +92,7 @@ function formatEndereco(data: QueryEnderecoResult) {
     .map<Omit<Ponto, "zIndex">>((endereco) => ({
       ...endereco,
       lat: endereco.lat.toNumber(),
-      lng: endereco.lat.toNumber(),
+      lng: endereco.lng.toNumber(),
       locais: endereco.locais.map(formatLocal),
     }))
     .sort((a, b) => b.lat - a.lat)
