@@ -17,10 +17,11 @@ import {
 } from "@vis.gl/react-google-maps";
 import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
-import { MapPin, MapPinCheckInside } from "lucide-react";
+import { LoaderCircle, MapPin, MapPinCheckInside } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { PlacesResponse } from "@/app/api/places/[location]/route";
 import { PLACES_BOUNDING_BOX_RADIUS } from "@/lib/constants";
+import Link from "next/link";
 
 interface Props {
   data: Endereco | Local;
@@ -43,7 +44,8 @@ export default function MapPlaces({ location: locationProps, data }: Props) {
     zIndex: zIndexSelected,
   });
 
-  const { location, isDefaultLocation, promptGeolocation, geometryAvailable, mapsGetBoundingBox } = useGeo();
+  const { location, isDefaultLocation, isLoadingLocation, promptGeolocation, geometryAvailable, mapsGetBoundingBox } =
+    useGeo();
   const { leg } = useDirections(data, isDefaultLocation ? locationProps : location);
 
   const map = useMap();
@@ -197,21 +199,48 @@ export default function MapPlaces({ location: locationProps, data }: Props) {
           pixelOffset={[0, -2]}
           onCloseClick={handleInfowindowCloseClick}
           headerDisabled
+          className="text-base"
         >
-          <h2>Marker {selectedId}</h2>
-          <p>Some arbitrary html to be rendered into the InfoWindow.</p>
-          {selectedId === data.id && (
+          {selectedId === data.id ? (
             <Fragment>
-              {leg?.distance && <span className={buttonVariants({ variant: "ghost" })}>{leg.distance.text}</span>}
-              {isDefaultLocation && (
-                <Button variant="ghost" className="text-sm font-semibold leading-6" onClick={() => promptGeolocation()}>
-                  {leg?.distance ? "Mais preciso" : "Distância precisa"}{" "}
+              <ul className="ml-5 min-w-24 list-disc">
+                {dataPonto.locais.map(({ id, nome, slug }) => (
+                  <li key={id}>
+                    <Link
+                      href={`/${slug}`}
+                      className={cn("block py-2 tracking-wide underline underline-offset-1", {
+                        "font-medium no-underline": isLocal(data) && data.id === id,
+                      })}
+                    >
+                      {nome}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <Button
+                variant="ghost"
+                className="mt-2 w-full text-sm font-semibold leading-6"
+                onClick={() => isDefaultLocation && promptGeolocation()}
+              >
+                {isLoadingLocation && <LoaderCircle className="animate-spin" />}
+                {leg?.distance ? leg.distance.text : "Calcular distância"}{" "}
+                {!isDefaultLocation && leg?.distance && (
                   <span aria-hidden="true">
                     <MapPinCheckInside />
                   </span>
-                </Button>
-              )}
+                )}
+              </Button>
             </Fragment>
+          ) : (
+            <ul className="ml-5 min-w-24 list-disc">
+              {selectedPonto?.locais.map(({ id, nome, slug }) => (
+                <li key={id}>
+                  <Link href={`/${slug}`} className="block py-2">
+                    {nome}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           )}
         </InfoWindow>
       )}

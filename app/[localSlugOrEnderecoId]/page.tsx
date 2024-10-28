@@ -1,10 +1,7 @@
 import prisma from "@/lib/prisma";
-import { Endereco, GeoCookieValue, isEndereco, isLocal, Local } from "@/types";
+import { Endereco, GeoCookieValue, Local } from "@/types";
 import { notFound } from "next/navigation";
 import { transformEndereco, transformLocal } from "@/lib/utils";
-import MapPlacesEndereco from "../components/MapPlaces/MapPlacesEndereco";
-import MapPlacesLocal from "../components/MapPlaces/MapPlacesLocal";
-import { Fragment } from "react";
 import { cookies } from "next/headers";
 import MapPlaces from "../components/MapPlaces";
 

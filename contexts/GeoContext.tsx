@@ -11,6 +11,7 @@ type GeoProviderProps = {
 interface GeoProviderState {
   location: google.maps.LatLngLiteral;
   locationBias: google.maps.LatLngBoundsLiteral;
+  isLoadingLocation: boolean;
   isDefaultLocation: boolean;
   isDefaultLocationBias: boolean;
   geometryAvailable: boolean;
@@ -28,6 +29,7 @@ const initialState: GeoProviderState = {
     south: -34.32198851984677,
     west: -80.67214874999999,
   },
+  isLoadingLocation: false,
   isDefaultLocation: true,
   isDefaultLocationBias: true,
   geometryAvailable: false,
@@ -39,6 +41,7 @@ const GeoProviderContext = createContext<GeoProviderState>(initialState);
 
 export function GeoProvider({ children, ...props }: GeoProviderProps) {
   const [location, setLocation] = useState<google.maps.LatLngLiteral>(initialState.location);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(initialState.isLoadingLocation);
   const [isDefaultLocation, setIsDefaultLocation] = useState(initialState.isDefaultLocation);
   const [locationBias, setLocationBias] = useState<google.maps.LatLngBoundsLiteral>(initialState.locationBias);
   const [isDefaultLocationBias, setIsDefaultLocationBias] = useState(initialState.isDefaultLocation);
@@ -60,16 +63,19 @@ export function GeoProvider({ children, ...props }: GeoProviderProps) {
 
   const promptGeolocation = useCallback((onSuccess?: (() => void) | null, onError?: (() => void) | null) => {
     if ("geolocation" in navigator) {
+      setIsLoadingLocation(true);
       // Retrieve latitude & longitude coordinates from `navigator.geolocation` Web API
       navigator.geolocation.getCurrentPosition(
         ({ coords }) => {
           const { latitude, longitude } = coords;
           setLocation({ lat: latitude, lng: longitude });
           setIsDefaultLocation(false);
+          setIsLoadingLocation(false);
           onSuccess && onSuccess();
         },
         () => {
           onError && onError();
+          setIsLoadingLocation(false);
         },
       );
     }
@@ -86,6 +92,7 @@ export function GeoProvider({ children, ...props }: GeoProviderProps) {
   const value: GeoProviderState = {
     location,
     locationBias,
+    isLoadingLocation,
     isDefaultLocation,
     isDefaultLocationBias,
     mapsGetBoundingBox,
