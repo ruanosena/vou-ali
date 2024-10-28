@@ -2,26 +2,29 @@
 import { useGeo } from "@/contexts/GeoContext";
 import { useDirections } from "@/hooks/useDirections";
 import { cn, getEnderecoBounds } from "@/lib/utils";
-import { Endereco, isLocal, Local, Ponto } from "@/types";
+import { Endereco, isEndereco, isLocal, Local, Ponto } from "@/types";
 import {
   AdvancedMarker,
   InfoWindow,
   Map,
-  Pin,
   useMap,
   AdvancedMarkerAnchorPoint,
   AdvancedMarkerProps,
-  APIProvider,
   useAdvancedMarkerRef,
   CollisionBehavior,
+  ControlPosition,
 } from "@vis.gl/react-google-maps";
 import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
 import { LoaderCircle, MapPin, MapPinCheckInside } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { PlacesResponse } from "@/app/api/places/[location]/route";
 import { PLACES_BOUNDING_BOX_RADIUS } from "@/lib/constants";
 import Link from "next/link";
+
+import PanelLocal from "./LocalPanel";
+import dynamic from "next/dynamic";
+const DynamicMapControl = dynamic(() => import("@vis.gl/react-google-maps").then((m) => m.MapControl), { ssr: false });
 
 interface Props {
   data: Endereco | Local;
@@ -80,6 +83,14 @@ export default function MapPlaces({ location: locationProps, data }: Props) {
     },
     [selectedId],
   );
+  const onDataMarkerRender = useCallback(
+    (marker: google.maps.marker.AdvancedMarkerElement) => {
+      if (isEndereco(data)) {
+        onMarkerClick(dataPonto, marker);
+      }
+    },
+    [data, dataPonto, onMarkerClick],
+  );
   const onMapClick = useCallback(() => {
     setSelectedId(null);
     setSelectedMarker(null);
@@ -126,135 +137,151 @@ export default function MapPlaces({ location: locationProps, data }: Props) {
   }, [data, geometryAvailable, mapsGetBoundingBox]);
 
   return (
-    <Map
-      className="h-screen"
-      mapId={process.env.NEXT_PUBLIC_MAP_ID}
-      defaultZoom={12}
-      defaultCenter={data}
-      defaultBounds={defaultBounds}
-      gestureHandling={"greedy"}
-      clickableIcons={false}
-      disableDefaultUI={false}
-      onClick={onMapClick}
-    >
-      {pontos.map((ponto) => {
-        const { lat, lng } = ponto;
-        let zIndex = ponto.zIndex; // default zIndex
-
-        if (hoverId === ponto.id) {
-          zIndex = zIndexHover;
-        }
-
-        if (selectedId === ponto.id) {
-          zIndex = zIndexSelected;
-        }
-
-        return (
-          <AdvancedMarkerWithRef
-            key={ponto.id}
-            position={{ lat, lng }}
-            zIndex={zIndex}
-            className="transition-all duration-200 ease-in-out"
-            style={{
-              transform: `scale(${[hoverId, selectedId].includes(ponto.id) ? 1.3 : 1})`,
-              transformOrigin: AdvancedMarkerAnchorPoint["BOTTOM"].join(" "),
-            }}
-            onMarkerClick={(marker: google.maps.marker.AdvancedMarkerElement) => onMarkerClick(ponto, marker)}
-            onMouseEnter={() => onMouseEnter(ponto.id)}
-            collisionBehavior={CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY}
-            onMouseLeave={onMouseLeave}
-          >
-            <MapPin className="size-10 fill-red-500 stroke-red-600 stroke-1 transition-all duration-200 ease-in-out" />
-          </AdvancedMarkerWithRef>
-        );
-      })}
-
-      <AdvancedMarkerWithRef
-        position={dataPonto}
-        zIndex={dataPonto.zIndex}
-        className="transition-all duration-200 ease-in-out"
-        style={{
-          transform: `scale(${[hoverId, selectedId].includes(dataPonto.id) ? 1.3 : 1})`,
-          transformOrigin: AdvancedMarkerAnchorPoint["BOTTOM"].join(" "),
-        }}
-        onMarkerClick={(marker: google.maps.marker.AdvancedMarkerElement) => onMarkerClick(dataPonto, marker)}
-        onMouseEnter={() => onMouseEnter(dataPonto.id)}
-        collisionBehavior={CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY}
-        onMouseLeave={onMouseLeave}
+    <Fragment>
+      <Map
+        className="h-screen"
+        mapId={process.env.NEXT_PUBLIC_MAP_ID}
+        defaultZoom={12}
+        defaultCenter={data}
+        defaultBounds={defaultBounds}
+        gestureHandling={"greedy"}
+        clickableIcons={false}
+        disableDefaultUI={false}
+        onClick={onMapClick}
       >
-        <MapPin className="size-10 fill-[url(#LogoGradient)] stroke-primary/65 stroke-1 transition-all duration-200 ease-in-out">
-          <defs>
-            <linearGradient id="LogoGradient" gradientTransform="rotate(90)">
-              <stop offset="10%" stopColor="#6366f1" />
-              <stop offset="55%" stopColor="#0ea5e9" />
-              <stop offset="90%" stopColor="#10b981" />
-            </linearGradient>
-          </defs>
-        </MapPin>
-      </AdvancedMarkerWithRef>
+        {pontos.map((ponto) => {
+          const { lat, lng } = ponto;
+          let zIndex = ponto.zIndex; // default zIndex
 
-      {infoWindowShown && selectedMarker && (
-        <InfoWindow
-          anchor={selectedMarker}
-          pixelOffset={[0, -2]}
-          onCloseClick={handleInfowindowCloseClick}
-          headerDisabled
-          className="text-base"
+          if (hoverId === ponto.id) {
+            zIndex = zIndexHover;
+          }
+
+          if (selectedId === ponto.id) {
+            zIndex = zIndexSelected;
+          }
+
+          return (
+            <AdvancedMarkerWithRef
+              key={ponto.id}
+              position={{ lat, lng }}
+              zIndex={zIndex}
+              className="transition-all duration-200 ease-in-out"
+              style={{
+                transform: `scale(${[hoverId, selectedId].includes(ponto.id) ? 1.3 : 1})`,
+                transformOrigin: AdvancedMarkerAnchorPoint["BOTTOM"].join(" "),
+              }}
+              onMarkerClick={(marker: google.maps.marker.AdvancedMarkerElement) => onMarkerClick(ponto, marker)}
+              onMouseEnter={() => onMouseEnter(ponto.id)}
+              collisionBehavior={CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY}
+              onMouseLeave={onMouseLeave}
+            >
+              <MapPin className="size-10 fill-red-500 stroke-red-600 stroke-1 transition-all duration-200 ease-in-out" />
+            </AdvancedMarkerWithRef>
+          );
+        })}
+
+        <AdvancedMarkerWithRef
+          position={dataPonto}
+          zIndex={dataPonto.zIndex}
+          className="transition-all duration-200 ease-in-out"
+          style={{
+            transform: `scale(${[hoverId, selectedId].includes(dataPonto.id) ? 1.3 : 1})`,
+            transformOrigin: AdvancedMarkerAnchorPoint["BOTTOM"].join(" "),
+          }}
+          onMarkerClick={(marker: google.maps.marker.AdvancedMarkerElement) => onMarkerClick(dataPonto, marker)}
+          onMouseEnter={() => onMouseEnter(dataPonto.id)}
+          collisionBehavior={CollisionBehavior.OPTIONAL_AND_HIDES_LOWER_PRIORITY}
+          onMouseLeave={onMouseLeave}
+          onMarkerRender={onDataMarkerRender}
         >
-          {selectedId === data.id ? (
-            <Fragment>
+          <MapPin className="size-10 fill-[url(#LogoGradient)] stroke-primary/65 stroke-1 transition-all duration-200 ease-in-out">
+            <defs>
+              <linearGradient id="LogoGradient" gradientTransform="rotate(90)">
+                <stop offset="10%" stopColor="#6366f1" />
+                <stop offset="55%" stopColor="#0ea5e9" />
+                <stop offset="90%" stopColor="#10b981" />
+              </linearGradient>
+            </defs>
+          </MapPin>
+        </AdvancedMarkerWithRef>
+
+        {infoWindowShown && selectedMarker && (
+          <InfoWindow
+            anchor={selectedMarker}
+            pixelOffset={[0, -2]}
+            onCloseClick={handleInfowindowCloseClick}
+            headerDisabled
+            className="text-base"
+          >
+            {selectedId === data.id ? (
+              <Fragment>
+                <ul className="ml-5 min-w-24 list-disc">
+                  {dataPonto.locais.map(({ id, nome, slug }) => (
+                    <li key={id}>
+                      <Link
+                        href={`/${slug}`}
+                        className={cn("block py-2 tracking-wide underline underline-offset-1", {
+                          "font-medium no-underline": isLocal(data) && data.id === id,
+                        })}
+                      >
+                        {nome}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  variant="ghost"
+                  className="mt-2 w-full text-sm font-semibold leading-6"
+                  onClick={() => isDefaultLocation && promptGeolocation()}
+                >
+                  {isLoadingLocation && <LoaderCircle className="animate-spin" />}
+                  {leg?.distance ? leg.distance.text : "Calcular distância"}{" "}
+                  {!isDefaultLocation && leg?.distance && (
+                    <span aria-hidden="true">
+                      <MapPinCheckInside />
+                    </span>
+                  )}
+                </Button>
+              </Fragment>
+            ) : (
               <ul className="ml-5 min-w-24 list-disc">
-                {dataPonto.locais.map(({ id, nome, slug }) => (
+                {selectedPonto?.locais.map(({ id, nome, slug }) => (
                   <li key={id}>
-                    <Link
-                      href={`/${slug}`}
-                      className={cn("block py-2 tracking-wide underline underline-offset-1", {
-                        "font-medium no-underline": isLocal(data) && data.id === id,
-                      })}
-                    >
+                    <Link href={`/${slug}`} className="block py-2">
                       {nome}
                     </Link>
                   </li>
                 ))}
               </ul>
-              <Button
-                variant="ghost"
-                className="mt-2 w-full text-sm font-semibold leading-6"
-                onClick={() => isDefaultLocation && promptGeolocation()}
-              >
-                {isLoadingLocation && <LoaderCircle className="animate-spin" />}
-                {leg?.distance ? leg.distance.text : "Calcular distância"}{" "}
-                {!isDefaultLocation && leg?.distance && (
-                  <span aria-hidden="true">
-                    <MapPinCheckInside />
-                  </span>
-                )}
-              </Button>
-            </Fragment>
-          ) : (
-            <ul className="ml-5 min-w-24 list-disc">
-              {selectedPonto?.locais.map(({ id, nome, slug }) => (
-                <li key={id}>
-                  <Link href={`/${slug}`} className="block py-2">
-                    {nome}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </InfoWindow>
+            )}
+          </InfoWindow>
+        )}
+      </Map>
+
+      {isLocal(data) && (
+        <DynamicMapControl position={ControlPosition.TOP_RIGHT}>
+          <PanelLocal data={data} />
+        </DynamicMapControl>
       )}
-    </Map>
+    </Fragment>
   );
 }
 
 export const AdvancedMarkerWithRef = (
   props: AdvancedMarkerProps & {
     onMarkerClick: (marker: google.maps.marker.AdvancedMarkerElement) => void;
+    onMarkerRender?: (marker: google.maps.marker.AdvancedMarkerElement) => void;
   },
 ) => {
-  const { children, onMarkerClick, ...advancedMarkerProps } = props;
+  const { children, onMarkerClick, onMarkerRender, ...advancedMarkerProps } = props;
   const [markerRef, marker] = useAdvancedMarkerRef();
+
+  useEffect(() => {
+    if (marker && onMarkerRender) {
+      onMarkerRender(marker);
+    }
+  }, [marker]);
 
   return (
     <AdvancedMarker
