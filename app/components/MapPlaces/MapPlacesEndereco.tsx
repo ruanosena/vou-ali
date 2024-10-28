@@ -30,7 +30,7 @@ export default function MapPlacesEndereco({ location: locationProps, data }: Pro
 
   return (
     <Map
-      className="max-h-screen"
+      className="h-screen"
       mapId={process.env.NEXT_PUBLIC_MAP_ID}
       defaultZoom={12}
       defaultBounds={defaultBounds}

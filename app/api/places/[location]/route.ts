@@ -20,10 +20,10 @@ export async function GET(req: Request, { params }: { params: { location: string
     return Response.json(payload, { status: 401 });
   }
 
-  let lat: number | undefined, lng: number | undefined;
+  let originLat: number | undefined, originLng: number | undefined;
   try {
-    lat = new Prisma.Decimal(latParam.trim()).toNumber();
-    lng = new Prisma.Decimal(lngParam.trim()).toNumber();
+    originLat = new Prisma.Decimal(latParam.trim()).toNumber();
+    originLng = new Prisma.Decimal(lngParam.trim()).toNumber();
   } catch {
     payload.error = "Invalid parameters";
     return Response.json(payload, { status: 400 });
@@ -44,24 +44,33 @@ export async function GET(req: Request, { params }: { params: { location: string
     return Response.json(payload, { status: 404 });
   }
 
-  payload.data = formatEndereco(await queryEndereco(bounds, lat, lng));
+  let origin: QueryEnderecoResult[number] | undefined;
+  try {
+    origin = await prisma.endereco.findFirstOrThrow({
+      select: { id: true, enderecoFormatado: true, lat: true, lng: true, locais: { where: { publicado: true } } },
+      where: {
+        locais: { some: { publicado: true } },
+        lat: { equals: originLat },
+        lng: { equals: originLng },
+      },
+    });
+  } catch (error) {
+    payload.error = "No origin place found";
+    return Response.json(payload, { status: 400 });
+  }
+
+  payload.data = formatEndereco(await queryEndereco(bounds), origin);
 
   return Response.json(payload, { status: 200 });
 }
 
-async function queryEndereco(
-  bBox: google.maps.LatLngBoundsLiteral,
-  originLat: number,
-  originLng: number,
-  take = MAX_PONTOS,
-) {
+async function queryEndereco(bBox: google.maps.LatLngBoundsLiteral, take = MAX_PONTOS) {
   try {
     const results = await prisma.endereco.findMany({
       take,
-      select: { id: true, enderecoFormatado: true, lat: true, lng: true, locais: true },
+      select: { id: true, enderecoFormatado: true, lat: true, lng: true, locais: { where: { publicado: true } } },
       where: {
         locais: { some: { publicado: true } },
-        NOT: { lat: originLat, lng: originLng },
         AND: [
           { lat: { lte: bBox.north }, lng: { lte: bBox.east } },
           { lat: { gte: bBox.south }, lng: { gte: bBox.west } },
@@ -83,12 +92,15 @@ function formatLocal(local: QueryEnderecoResult[number]["locais"][number]) {
   };
 }
 
-function formatEndereco(data: QueryEnderecoResult) {
+function formatEndereco(data: QueryEnderecoResult, origin: QueryEnderecoResult[number]) {
+  let originFound = false;
+  const originLat = origin.lat.toNumber();
+  const originLng = origin.lng.toNumber();
   // A common pattern for applying z-indexes is to sort the markers
   // by latitude and apply a default z-index according to the index position
   // This usually is the most pleasing visually. Markers that are more "south"
   // thus appear in front.
-  return data
+  const pontos = data
     .map<Omit<Ponto, "zIndex">>((endereco) => ({
       ...endereco,
       lat: endereco.lat.toNumber(),
@@ -96,5 +108,19 @@ function formatEndereco(data: QueryEnderecoResult) {
       locais: endereco.locais.map(formatLocal),
     }))
     .sort((a, b) => b.lat - a.lat)
-    .map<Ponto>((dataItem, index) => ({ ...dataItem, zIndex: index }));
+    .map<Ponto>((dataItem, index, array) => {
+      let isOrigin: boolean | undefined;
+      if (!originFound && (isOrigin = dataItem.lat === originLat || dataItem.lng === originLng)) originFound = true;
+      return { ...dataItem, zIndex: isOrigin ? array.length - 1 : originFound ? index - 1 : index };
+    });
+
+  if (!originFound)
+    pontos.unshift({
+      ...origin,
+      lat: originLat,
+      lng: originLng,
+      locais: origin.locais.map(formatLocal),
+      zIndex: pontos.length,
+    });
+  return pontos;
 }

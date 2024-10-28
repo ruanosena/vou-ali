@@ -6,6 +6,7 @@ import MapPlacesEndereco from "../components/MapPlaces/MapPlacesEndereco";
 import MapPlacesLocal from "../components/MapPlaces/MapPlacesLocal";
 import { Fragment } from "react";
 import { cookies } from "next/headers";
+import MapPlaces from "../components/MapPlaces";
 
 async function queryLocal(slug: string) {
   const result = await prisma.local.findUnique({
@@ -51,10 +52,5 @@ export default async function LocalPage({
 
   if (!data) return notFound();
 
-  return (
-    <Fragment>
-      {isEndereco(data) && <MapPlacesEndereco data={data} {...(geo?.lat && geo.lng && { location: geo })} />}
-      {isLocal(data) && <MapPlacesLocal data={data} {...(geo?.lat && geo.lng && { location: geo })} />}
-    </Fragment>
-  );
+  return <MapPlaces data={data} {...(geo?.lat && geo.lng && { location: geo })} />;
 }

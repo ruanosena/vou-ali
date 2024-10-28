@@ -21,3 +21,5 @@ export const REDE_SOCIAL_PLACEHOLDER: Record<$Enums.RedeSocialNome, string> = {
 export const MAX_SUGGESTIONS = 8;
 
 export const MAX_PONTOS = 50;
+
+export const PLACES_BOUNDING_BOX_RADIUS = 250;
