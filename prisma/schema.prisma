@@ -42,14 +42,14 @@ model Local {
   nome              String
   slug              String         @unique
   apelidos          LocalApelido[]
-  endereco          Endereco       @relation(fields: [enderecoId], references: [id])
+  endereco          Endereco       @relation(fields: [enderecoId], references: [id], onDelete: Cascade)
   enderecoId        String         @map("endereco_id")
   site              String?
   telefone          String?
   telefoneFormatado String?        @map("telefone_formatado")
   redesSociais      RedeSocial[]
   publicado         Boolean        @default(false)
-  usuario           Usuario        @relation(fields: [usuarioId], references: [id])
+  usuario           Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   usuarioId         Int            @map("usuario_id")
 
   @@index([slug])
