@@ -18,7 +18,7 @@ export async function createLocal(formData: FormData) {
   const data: Local = rawData;
 
   const endereco = await createOrGetEndereco(rawData.endereco!);
-  const usuario = await createOrGetUsuario(rawData.usuario!);
+  const usuario = await createOrGetUser(rawData.usuario!);
 
   await prisma.local.create({
     data: {
@@ -50,8 +50,8 @@ async function createOrGetEndereco(rawData: Endereco) {
   });
 }
 
-async function createOrGetUsuario(data: Usuario) {
-  return await prisma.usuario.upsert({
+async function createOrGetUser(data: Usuario) {
+  return await prisma.user.upsert({
     where: { email: data.email },
     update: {},
     create: data,

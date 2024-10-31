@@ -56,7 +56,8 @@ export function isLocal(data: Endereco | Local): data is Local {
 }
 
 export interface Usuario {
-  nome?: string | null;
+  id: string;
+  name?: string | null;
   email: string;
 }
 

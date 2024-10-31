@@ -10,7 +10,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.7.2",
     "@heroicons/react": "^2.1.5",
+    "@neondatabase/serverless": "^0.9.5",
+    "@prisma/adapter-neon": "^5.21.1",
     "@prisma/client": "^5.21.1",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-icons": "^1.3.0",
@@ -24,6 +27,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.453.0",
     "next": "14.2.14",
+    "next-auth": "^4.24.10",
     "prisma": "^5.21.1",
     "react": "^18",
     "react-dom": "^18",
