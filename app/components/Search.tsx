@@ -104,10 +104,14 @@ export function Search({ location: locationProps, className, ...props }: Props) 
           Object.entries(locationBias).forEach(([key, value]) => searchParams.append(key, encodeURIComponent(value)));
       } else if (locationProps) {
         url += `/${locationProps.lat},${locationProps.lng}`;
+
         if (initialSuggestions)
           Object.entries(
             mapsGetBoundingBox(locationProps.lat, locationProps.lng, 5000 /* 5km distance from IP Location */),
           ).forEach(([key, value]) => searchParams.append(key, encodeURIComponent(value)));
+      } else if (!initialSuggestions) {
+        // called in development with default geolocation
+        url += `/${location.lat},${location.lng}`;
       } else {
         return;
       }

@@ -48,7 +48,7 @@ export interface Local {
   telefoneFormatado?: string | null;
   redesSociais: RedeSocial[];
   publicado: boolean;
-  usuario?: Usuario;
+  usuario?: Usuario | null;
 }
 
 export function isLocal(data: Endereco | Local): data is Local {
