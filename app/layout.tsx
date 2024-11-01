@@ -5,6 +5,7 @@ import { MapsAPI } from "../components/MapsAPI";
 import { GeoProvider } from "@/contexts/GeoContext";
 import { SessionProvider } from "next-auth/react";
 import NavBar from "@/components/NavBar";
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -42,6 +43,7 @@ export default function RootLayout({
                   ruanosena
                 </a>
               </footer>
+              <Toaster />
             </body>
           </SessionProvider>
         </GeoProvider>

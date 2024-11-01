@@ -234,7 +234,10 @@ export function MapPlaces({ location: locationProps, data, className, ...props }
                 </ul>
                 <Button
                   variant="ghost"
-                  className="mt-2 w-full text-sm font-semibold leading-6"
+                  className={cn("mt-2 w-full text-sm font-semibold leading-6", {
+                    "cursor-default": !isDefaultLocation && leg?.distance,
+                  })}
+                  {...(isDefaultLocation && leg?.distance && { title: "Melhorar precisão" })}
                   onClick={() => isDefaultLocation && promptGeolocation()}
                 >
                   {isLoadingLocation && <LoaderCircle className="animate-spin" />}

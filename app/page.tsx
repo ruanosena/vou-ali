@@ -1,6 +1,8 @@
 import { Search } from "@/components/Search";
+import prisma from "@/lib/prisma";
 import { GeoCookieValue } from "@/types";
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { Fragment } from "react";
 
 export default async function Home() {
@@ -8,8 +10,20 @@ export default async function Home() {
   let geo: GeoCookieValue | undefined;
   if (geoCookie) geo = JSON.parse(decodeURIComponent(geoCookie.value));
 
+  const users = await prisma.user.findMany();
+
   return (
     <Fragment>
+      <ul className="list-inside list-disc">
+        {users.map((user) => (
+          <li key={user.id}>
+            <Link className="hover:underline" href={`/u/${user.id}`}>
+              {user.name || `Usuário ${user.id}`}
+            </Link>
+          </li>
+        ))}
+      </ul>
+
       <Search
         className="min-h-[calc(100vh_-_3rem)]"
         // avoids cookie without coords

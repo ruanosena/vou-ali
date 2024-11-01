@@ -192,7 +192,7 @@ export function Search({ location: locationProps, className, ...props }: Props) 
 
   return (
     <div className={cn("flex min-h-screen flex-col items-center bg-secondary-foreground", className)} {...props}>
-      <div className="container flex h-12 w-full items-center justify-end px-4">
+      <div className="container flex h-12 w-full items-center justify-end">
         <Dialog onOpenChange={setIsSettingsOpen} open={isSettingsOpen}>
           <DialogTrigger asChild>
             <Button variant="ghost" className="bg-transparent text-primary-foreground sm:text-base">
