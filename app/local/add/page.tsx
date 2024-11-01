@@ -110,11 +110,11 @@ export default function AddLocal() {
           formData.delete("tel2");
           formData.delete("tel3");
 
-          const nome = formDataObj.nomeUsuario ? formData.get("nomeUsuario") : null;
+          const name = formDataObj.nomeUsuario ? formData.get("nomeUsuario") : null;
           formData.delete("nomeUsuario");
           const email = formData.get("email");
           formData.delete("email");
-          const usuario = { nome, email };
+          const usuario = { name, email };
           formData.append("usuario", JSON.stringify(usuario));
 
           await createLocal(formData);

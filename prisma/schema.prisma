@@ -27,7 +27,7 @@ model Endereco {
   locais            Local[]
 
   @@unique(name: "posicao", [lat, lng])
-  @@map("enderecos")
+  @@map("endereco")
 }
 
 model Local {
@@ -44,31 +44,31 @@ model Local {
   telefoneFormatado String?        @map("telefone_formatado")
   redesSociais      RedeSocial[]
   publicado         Boolean        @default(false)
-  usuario           User           @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
-  usuarioId         String         @map("usuario_id")
+  usuario           User?          @relation(fields: [usuarioId], references: [id], onDelete: SetNull, onUpdate: SetNull)
+  usuarioId         String?        @map("usuario_id")
 
   @@index([slug])
-  @@map("locais")
+  @@map("local")
 }
 
 model LocalApelido {
   id      Int    @id @default(autoincrement())
   apelido String
-  local   Local  @relation(fields: [localId], references: [id])
+  local   Local  @relation(fields: [localId], references: [id], onDelete: Cascade)
   localId String @map("local_id")
 
   @@index([apelido])
-  @@map("local_apelidos")
+  @@map("local_apelido")
 }
 
 model RedeSocial {
   id      String         @id @default(uuid())
   nome    RedeSocialNome
   link    String
-  local   Local          @relation(fields: [localId], references: [id])
+  local   Local          @relation(fields: [localId], references: [id], onDelete: Cascade)
   localId String         @map("local_id")
 
-  @@map("redes_sociais")
+  @@map("rede_social")
 }
 
 enum RedeSocialNome {
@@ -78,7 +78,7 @@ enum RedeSocialNome {
   TELEGRAM
   EMAIL
 
-  @@map("redes_sociais_nomes")
+  @@map("rede_social_nome")
 }
 
 model User {
@@ -95,7 +95,7 @@ model User {
 
   locais Local[]
 
-  @@map("users")
+  @@map("user")
 }
 
 model Account {
@@ -117,7 +117,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([provider, providerAccountId])
-  @@map("accounts")
+  @@map("account")
 }
 
 model Session {
@@ -129,7 +129,7 @@ model Session {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("sessions")
+  @@map("session")
 }
 
 model VerificationToken {
@@ -138,5 +138,5 @@ model VerificationToken {
   expires    DateTime
 
   @@id([identifier, token])
-  @@map("verification_tokens")
+  @@map("verification_token")
 }

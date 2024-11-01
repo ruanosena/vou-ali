@@ -28,6 +28,8 @@ export async function createLocal(formData: FormData) {
       lng: new Prisma.Decimal(data.lng),
       apelidos: { createMany: { data: data.apelidos } },
       redesSociais: { createMany: { data: data.redesSociais } },
+      telefone: data.telefone,
+      telefoneFormatado: data.telefoneFormatado,
       enderecoId: endereco.id,
       usuarioId: usuario.id,
     },
