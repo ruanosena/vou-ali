@@ -1,7 +1,6 @@
 import { cn } from "@/lib/utils";
 import * as React from "react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Local } from "@/types";
 import { REDE_SOCIAL_NOME } from "@/lib/constants";
@@ -18,17 +17,17 @@ function LocalPanel({ data, className, ...props }: Props) {
   const [open, setOpen] = React.useState(true);
 
   return open ? (
-    <Card className={cn("m-6 max-w-72 text-sm sm:max-w-80", className)} {...props}>
+    <Card className={cn("ml-2.5 max-w-72 text-sm sm:max-w-80", className)} {...props}>
       <CardHeader className="relative space-y-2.5 py-3">
         <CardTitle className="pr-[1.375rem] text-base font-medium">{data.nome}</CardTitle>
         {data.endereco.enderecoFormatado && <CardDescription>{data.endereco.enderecoFormatado}</CardDescription>}
         <X className="absolute right-0 top-0 !mt-1.5 mr-1.5 size-10 cursor-pointer" onClick={() => setOpen(false)} />
       </CardHeader>
       <CardContent
-        className={cn("max-h-[calc(100vh_-_12rem)] cursor-auto overflow-y-scroll px-6 py-0 text-sm", className)}
+        className={cn("max-h-[calc(100vh_-_19rem)] cursor-auto overflow-y-scroll px-6 py-0 text-sm", className)}
       >
         {(!!data.apelidos.length || data.telefone || !!data.redesSociais.length || data.site) && (
-          <dl className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 sm:gap-y-12 lg:gap-x-8">
+          <dl className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 sm:gap-y-6 lg:gap-x-6">
             {!!data.apelidos.length && (
               <div className="border-t border-gray-200 pt-4 sm:col-span-2">
                 <dt className="font-medium text-gray-900">Nomes populares</dt>
@@ -76,7 +75,7 @@ function LocalPanel({ data, className, ...props }: Props) {
           </dl>
         )}
       </CardContent>
-      <CardFooter className="flex justify-evenly pb-3 pt-6">
+      <CardFooter className="flex justify-evenly py-3">
         <Link className="p-2" href="#">
           Editar ↗
         </Link>

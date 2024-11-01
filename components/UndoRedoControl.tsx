@@ -1,9 +1,8 @@
 import React, { useReducer, useRef } from "react";
 import { useMap } from "@vis.gl/react-google-maps";
 
-import reducer, { useDrawingManagerEvents, useOverlaySnapshots } from "../../lib/undo-redo";
-
-import { DrawingActionKind } from "../../types/maps";
+import reducer, { useDrawingManagerEvents, useOverlaySnapshots } from "@/lib/undo-redo";
+import { DrawingActionKind } from "@/types/maps";
 
 interface Props {
   drawingManager: google.maps.drawing.DrawingManager | null;

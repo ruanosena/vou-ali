@@ -13,6 +13,7 @@ import {
   useAdvancedMarkerRef,
   CollisionBehavior,
   ControlPosition,
+  MapProps,
 } from "@vis.gl/react-google-maps";
 import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
 
@@ -26,12 +27,12 @@ import PanelLocal from "./LocalPanel";
 import dynamic from "next/dynamic";
 const DynamicMapControl = dynamic(() => import("@vis.gl/react-google-maps").then((m) => m.MapControl), { ssr: false });
 
-interface Props {
+interface Props extends React.PropsWithChildren<MapProps> {
   data: Endereco | Local;
   location?: google.maps.LatLngLiteral;
 }
 
-export default function MapPlaces({ location: locationProps, data }: Props) {
+export function MapPlaces({ location: locationProps, data, className, ...props }: Props) {
   const prevData = useRef<typeof data>(); // util for api call
 
   const [pontos, setPontos] = useState<Ponto[]>([]);
@@ -139,7 +140,7 @@ export default function MapPlaces({ location: locationProps, data }: Props) {
   return (
     <Fragment>
       <Map
-        className="h-screen"
+        className={cn("h-screen", className)}
         mapId={process.env.NEXT_PUBLIC_MAP_ID}
         defaultZoom={12}
         defaultCenter={data}
@@ -148,6 +149,7 @@ export default function MapPlaces({ location: locationProps, data }: Props) {
         clickableIcons={false}
         disableDefaultUI={false}
         onClick={onMapClick}
+        {...props}
       >
         {pontos.map((ponto) => {
           const { lat, lng } = ponto;
@@ -260,7 +262,7 @@ export default function MapPlaces({ location: locationProps, data }: Props) {
       </Map>
 
       {isLocal(data) && (
-        <DynamicMapControl position={ControlPosition.TOP_RIGHT}>
+        <DynamicMapControl position={ControlPosition.LEFT_TOP}>
           <PanelLocal data={data} />
         </DynamicMapControl>
       )}

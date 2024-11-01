@@ -1,12 +1,12 @@
 "use client";
-import { MapPlaceMark } from "@/app/components/MapPlaceMark";
+import { MapPlaceMark } from "@/components/MapPlaceMark";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { MAX_APELIDOS, REDE_SOCIAL_NOME, REDE_SOCIAL_PLACEHOLDER } from "@/lib/constants";
 import { createLocal } from "@/lib/actions";
 import { useMarker } from "@/contexts/MarkerContext";
 import { initialState, reducer, REDUCER_ACTION_TYPE } from "@/lib/slices/socialSlice";
-import { AddLocalButton } from "@/app/components/AddLocalButton";
+import { AddLocalButton } from "@/components/AddLocalButton";
 
 export default function AddLocal() {
   const formRef = useRef<HTMLFormElement>(null);

@@ -3,7 +3,7 @@ import { Endereco, GeoCookieValue, Local } from "@/types";
 import { notFound } from "next/navigation";
 import { transformEndereco, transformLocal } from "@/lib/utils";
 import { cookies } from "next/headers";
-import MapPlaces from "../components/MapPlaces";
+import { MapPlaces } from "@/components/MapPlaces";
 
 async function queryLocal(slug: string) {
   const result = await prisma.local.findUnique({
@@ -49,5 +49,5 @@ export default async function LocalPage({
 
   if (!data) return notFound();
 
-  return <MapPlaces data={data} {...(geo?.lat && geo.lng && { location: geo })} />;
+  return <MapPlaces data={data} {...(geo?.lat && geo.lng && { location: geo })} className="h-[calc(100vh_-_3rem)]" />;
 }

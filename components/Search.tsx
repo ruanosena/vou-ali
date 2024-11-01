@@ -8,7 +8,7 @@ import { Pesquisa } from "@/types";
 import { SearchIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { SearchResponse } from "../api/search/[location]/route";
+import { SearchResponse } from "../app/api/search/[location]/route";
 import SearchResultIcon from "./SearchResultIcon";
 import { Button } from "@/components/ui/button";
 import {

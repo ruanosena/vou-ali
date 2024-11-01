@@ -1,7 +1,7 @@
+import { Search } from "@/components/Search";
 import { GeoCookieValue } from "@/types";
 import { cookies } from "next/headers";
 import { Fragment } from "react";
-import { Search } from "./components/Search";
 
 export default async function Home() {
   const geoCookie = cookies().get("geo");
@@ -11,6 +11,7 @@ export default async function Home() {
   return (
     <Fragment>
       <Search
+        className="min-h-[calc(100vh_-_3rem)]"
         // avoids cookie without coords
         {...(geo?.lat && geo.lng && { location: geo })}
       />
