@@ -38,19 +38,19 @@ export default async function UserButton({ user }: UserButtonProps) {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem asChild className="text-lg [&>svg]:size-6">
-            <Link href="/settings">
+            <Link href="/u/config">
               <Settings className="mr-2" />
               <span>Settings</span>
             </Link>
           </DropdownMenuItem>
-          {/* {user.role === "admin" && (
-            <DropdownMenuItem asChild>
-              <Link href="/admin">
-                <Lock className="mr-2 h-4 w-4" />
+          {user.role === "admin" && (
+            <DropdownMenuItem asChild className="text-lg [&>svg]:size-6">
+              <Link href="/u/admin">
+                <Lock className="mr-2" />
                 Admin
               </Link>
             </DropdownMenuItem>
-          )} */}
+          )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild className="text-lg [&>svg]:size-6">

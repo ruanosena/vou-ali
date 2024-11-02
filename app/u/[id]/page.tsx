@@ -39,20 +39,10 @@ export default async function Page({ params: { id } }: PageProps) {
   return (
     <div className="mx-3 my-10 flex flex-col items-center gap-3">
       {user.image && (
-        <Image
-          src={user.image}
-          width={100}
-          alt="User profile picture"
-          height={100}
-          className="rounded-full"
-        />
+        <Image src={user.image} width={100} alt="User profile picture" height={100} className="rounded-full" />
       )}
-      <h1 className="text-center text-xl font-bold">
-        {user?.name || `User ${id}`}
-      </h1>
-      <p className="text-muted-foreground">
-        User since {new Date(user.createdAt).toLocaleDateString()}
-      </p>
+      <h1 className="text-center text-xl font-bold">{user?.name || `User ${id}`}</h1>
+      <p className="text-muted-foreground">User since {new Date(user.createdAt).toLocaleDateString()}</p>
     </div>
   );
 }

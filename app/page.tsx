@@ -11,6 +11,7 @@ export default async function Home() {
   if (geoCookie) geo = JSON.parse(decodeURIComponent(geoCookie.value));
 
   const users = await prisma.user.findMany();
+  console.log(users);
 
   return (
     <Fragment>
