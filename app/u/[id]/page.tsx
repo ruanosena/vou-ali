@@ -42,7 +42,7 @@ export default async function Page({ params: { id } }: PageProps) {
         <Image src={user.image} width={100} alt="User profile picture" height={100} className="rounded-full" />
       )}
       <h1 className="text-center text-xl font-bold">{user?.name || `User ${id}`}</h1>
-      <p className="text-muted-foreground">User since {new Date(user.createdAt).toLocaleDateString()}</p>
+      <p className="text-muted-foreground">Usuário desde {new Date(user.createdAt).toLocaleDateString()}</p>
     </div>
   );
 }

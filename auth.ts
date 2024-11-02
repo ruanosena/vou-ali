@@ -10,5 +10,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     logo: "/logo.png",
   },
   adapter: PrismaAdapter(prisma),
+  callbacks: {
+    session({ session, user }) {
+      session.user.role = user.role;
+      return session;
+    },
+  },
   providers: [Google, GitHub],
 });

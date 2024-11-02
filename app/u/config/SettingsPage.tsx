@@ -9,13 +9,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { updateProfile } from "./actions";
 import { User } from "next-auth";
+import { useSession } from "next-auth/react";
 
-interface SettingsPageProps {
+interface ConfigPageProps {
   user: User;
 }
 
-export default function SettingsPage({ user }: SettingsPageProps) {
+export default function ConfigPage({ user }: ConfigPageProps) {
   const { toast } = useToast();
+
+  const session = useSession();
 
   const form = useForm<UpdateProfileValues>({
     resolver: zodResolver(updateProfileSchema),
@@ -26,6 +29,7 @@ export default function SettingsPage({ user }: SettingsPageProps) {
     try {
       await updateProfile(data);
       toast({ description: "Profile updated." });
+      session.update();
     } catch (error) {
       toast({
         variant: "destructive",
@@ -37,7 +41,7 @@ export default function SettingsPage({ user }: SettingsPageProps) {
   return (
     <main className="px-3 py-10">
       <section className="mx-auto max-w-7xl space-y-6">
-        <h1 className="text-3xl font-bold">Settings</h1>
+        <h1 className="text-xl font-semibold leading-7 text-gray-900">Configurações</h1>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-sm space-y-2.5">
             <FormField
@@ -45,17 +49,17 @@ export default function SettingsPage({ user }: SettingsPageProps) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel className="text-base font-medium">Nome</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter a username" {...field} />
+                    <Input className="text-base" placeholder="Digite um nome de usuário" {...field} />
                   </FormControl>
-                  <FormDescription>Your public username</FormDescription>
+                  <FormDescription className="text-base">Seu nome público.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              Submit
+            <Button size="lg" type="submit" disabled={form.formState.isSubmitting}>
+              Enviar
             </Button>
           </form>
         </Form>

@@ -43,16 +43,6 @@ export default async function Home() {
           </div>
         </div>
       </section>
-
-      <ul className="list-inside list-disc">
-        {users.map((user) => (
-          <li key={user.id}>
-            <Link className="hover:underline" href={`/u/${user.id}`}>
-              {user.name || `Usuário ${user.id}`}
-            </Link>
-          </li>
-        ))}
-      </ul>
     </Fragment>
   );
 }

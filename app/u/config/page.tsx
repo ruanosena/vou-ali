@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import SettingsPage from "./SettingsPage";
+import ConfigPage from "./SettingsPage";
 import { redirect } from "next/navigation";
 import getSession from "@/lib/getSession";
 
@@ -15,5 +15,5 @@ export default async function Page() {
     redirect("/api/auth/signin?callbackUrl=/u/config");
   }
 
-  return <SettingsPage user={user} />;
+  return <ConfigPage user={user} />;
 }

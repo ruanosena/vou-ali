@@ -40,7 +40,7 @@ export default function UserButton({ user }: UserButtonProps) {
           <DropdownMenuItem asChild className="text-lg [&>svg]:size-6">
             <Link href="/u/config">
               <Settings className="mr-2" />
-              <span>Settings</span>
+              <span>Configurações</span>
             </Link>
           </DropdownMenuItem>
           {user.role === "admin" && (
@@ -55,7 +55,7 @@ export default function UserButton({ user }: UserButtonProps) {
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild className="text-lg [&>svg]:size-6">
           <button className="flex w-full items-center" onClick={() => signOut({ redirectTo: "/" })}>
-            <LogOut className="mr-2" /> Sign Out
+            <LogOut className="mr-2" /> Sair
           </button>
         </DropdownMenuItem>
       </DropdownMenuContent>

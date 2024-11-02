@@ -132,7 +132,7 @@ export default function AddLocal() {
         <div className="border-b border-gray-900/10 px-4 pb-12">
           <h2 className="text-lg font-semibold leading-7 text-gray-900">Informações pessoais</h2>
           <p className="mt-1 leading-6 text-gray-600">
-            Essas informações <b>não</b> serão exibidas publicamente.
+            Seu e-mail <b>não</b> será exibido publicamente.
           </p>
 
           <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
