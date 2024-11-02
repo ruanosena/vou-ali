@@ -1,14 +1,14 @@
 import { Metadata } from "next";
 import SettingsPage from "./SettingsPage";
-import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import getSession from "@/lib/getSession";
 
 export const metadata: Metadata = {
   title: "Configurações",
 };
 
 export default async function Page() {
-  const session = await auth();
+  const session = await getSession();
   const user = session?.user;
 
   if (!user) {

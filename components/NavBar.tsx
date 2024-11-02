@@ -1,13 +1,14 @@
+"use client";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
-import { auth, signIn } from "@/auth";
 import { Button } from "./ui/button";
 import UserButton from "./UserButton";
+import { signIn, useSession } from "next-auth/react";
 
-export default async function NavBar() {
-  const session = await auth();
-  const user = session?.user;
+export default function NavBar() {
+  const session = useSession();
+  const user = session.data?.user;
 
   return (
     <header className="sticky top-0 z-[2000000001] bg-secondary-foreground px-3 shadow-sm">
@@ -23,7 +24,8 @@ export default async function NavBar() {
           Vou alí
         </Link>
 
-        {user ? <UserButton user={user} /> : <SignInButton />}
+        {user && <UserButton user={user} />}
+        {!user && session.status !== "loading" && <SignInButton />}
       </nav>
     </header>
   );
@@ -31,15 +33,8 @@ export default async function NavBar() {
 
 function SignInButton() {
   return (
-    <form
-      action={async () => {
-        "use server";
-        await signIn();
-      }}
-    >
-      <Button type="submit" className="text-base" size="lg">
-        Entrar
-      </Button>
-    </form>
+    <Button className="text-base" size="lg" onClick={() => signIn()}>
+      Entrar
+    </Button>
   );
 }

@@ -13,13 +13,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { signOut } from "@/auth";
+import { signOut } from "next-auth/react";
 
 interface UserButtonProps {
   user: User;
 }
 
-export default async function UserButton({ user }: UserButtonProps) {
+export default function UserButton({ user }: UserButtonProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -54,16 +54,9 @@ export default async function UserButton({ user }: UserButtonProps) {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild className="text-lg [&>svg]:size-6">
-          <form
-            action={async () => {
-              "use server";
-              await signOut();
-            }}
-          >
-            <button type="submit" className="flex w-full items-center">
-              <LogOut className="mr-2" /> Sign Out
-            </button>
-          </form>
+          <button className="flex w-full items-center" onClick={() => signOut({ redirectTo: "/" })}>
+            <LogOut className="mr-2" /> Sign Out
+          </button>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
