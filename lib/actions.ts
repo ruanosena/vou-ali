@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import prisma from "./prisma";
 import slugify from "slugify";
 import { Endereco, Local, Usuario } from "@/types";
+import { auth } from "@/auth";
 
 export async function createLocal(formData: FormData) {
   const rawData = Object.fromEntries(formData.entries()) as unknown as Local;
@@ -13,14 +14,20 @@ export async function createLocal(formData: FormData) {
   rawData.apelidos = JSON.parse(rawData.apelidos as unknown as string);
   rawData.endereco = JSON.parse(rawData.endereco as unknown as string);
   rawData.redesSociais = JSON.parse(rawData.redesSociais as unknown as string);
-  rawData.usuario = JSON.parse(rawData.usuario as unknown as string);
+  if (rawData.usuario) rawData.usuario = JSON.parse(rawData.usuario as unknown as string);
 
   const data: Local = rawData;
 
   const endereco = await createOrGetEndereco(rawData.endereco!);
-  const usuario = await createOrGetUser(rawData.usuario!);
+  let usuario: Awaited<ReturnType<typeof createOrGetUser>> | undefined;
+  if (rawData.usuario) usuario = await createOrGetUser(rawData.usuario);
+  else {
+    const session = await auth();
+    usuario = await createOrGetUser({ email: session?.user.email! });
+  }
 
-  await prisma.local.create({
+  return await prisma.local.create({
+    select: { nome: true, endereco: { select: { enderecoFormatado: true } } },
     data: {
       nome: data.nome,
       slug: data.slug,
@@ -52,7 +59,7 @@ async function createOrGetEndereco(rawData: Endereco) {
   });
 }
 
-async function createOrGetUser(data: Usuario) {
+async function createOrGetUser(data: Omit<Usuario, "id">) {
   return await prisma.user.upsert({
     where: { email: data.email },
     update: {},

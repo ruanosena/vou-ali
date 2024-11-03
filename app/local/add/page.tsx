@@ -1,14 +1,23 @@
 "use client";
 import { MapPlaceMark } from "@/components/MapPlaceMark";
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { MAX_APELIDOS, REDE_SOCIAL_NOME, REDE_SOCIAL_PLACEHOLDER } from "@/lib/constants";
 import { createLocal } from "@/lib/actions";
 import { useMarker } from "@/contexts/MarkerContext";
 import { initialState, reducer, REDUCER_ACTION_TYPE } from "@/lib/slices/socialSlice";
 import { AddLocalButton } from "@/components/AddLocalButton";
+import { useSession } from "next-auth/react";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function AddLocal() {
+  const session = useSession();
+  const user = session.data?.user;
+
+  const { toast } = useToast();
+  const router = useRouter();
+
   const formRef = useRef<HTMLFormElement>(null);
   const localInputRef = useRef<HTMLInputElement>(null);
 
@@ -83,6 +92,17 @@ export default function AddLocal() {
       ref={formRef}
       action={async (formData) => {
         try {
+          const formDataObj = Object.fromEntries(formData.entries());
+
+          if (!user) {
+            const name = formDataObj.nomeUsuario ? formData.get("nomeUsuario") : null;
+            formData.delete("nomeUsuario");
+            const email = formData.get("email");
+            formData.delete("email");
+            const usuario = { name, email };
+            formData.append("usuario", JSON.stringify(usuario));
+          }
+
           formData.append("lat", String(marker.position!.lat));
           formData.append("lng", String(marker.position!.lng));
           formData.append("endereco", JSON.stringify(endereco));
@@ -97,8 +117,6 @@ export default function AddLocal() {
           const social = socialNomes.map((nome, index) => ({ nome, link: socialLinks[index] }));
           formData.append("redesSociais", JSON.stringify(social));
 
-          const formDataObj = Object.fromEntries(formData.entries());
-
           if (formDataObj.tel1 && formDataObj.tel2 && formDataObj.tel3) {
             const telefoneFormatado = `(${formData.get("tel1")}) ${formData.get("tel2")}-${formData.get("tel3")}`;
             formData.append("telefoneFormatado", telefoneFormatado);
@@ -110,18 +128,26 @@ export default function AddLocal() {
           formData.delete("tel2");
           formData.delete("tel3");
 
-          const name = formDataObj.nomeUsuario ? formData.get("nomeUsuario") : null;
-          formData.delete("nomeUsuario");
-          const email = formData.get("email");
-          formData.delete("email");
-          const usuario = { name, email };
-          formData.append("usuario", JSON.stringify(usuario));
+          const data = await createLocal(formData);
 
-          await createLocal(formData);
           clear();
           formRef.current?.reset();
           setTags([]);
           socialDispatch({ type: REDUCER_ACTION_TYPE.CLEAR });
+
+          toast({
+            title: "Local enviado!",
+            description: (
+              <Fragment>
+                <p className="text-lg">{data.nome}</p>
+                {data.endereco.enderecoFormatado && (
+                  <p className="truncate leading-6 text-gray-600">{data.endereco.enderecoFormatado}</p>
+                )}
+              </Fragment>
+            ),
+          });
+
+          router.push("/");
         } catch (error) {
           console.error(error);
         }
@@ -129,49 +155,51 @@ export default function AddLocal() {
       className="container mx-auto py-12"
     >
       <div className="space-y-12">
-        <div className="border-b border-gray-900/10 px-4 pb-12">
-          <h2 className="text-lg font-semibold leading-7 text-gray-900">Informações pessoais</h2>
-          <p className="mt-1 leading-6 text-gray-600">
-            Seu e-mail <b>não</b> será exibido publicamente.
-          </p>
+        {!user && session.status !== "loading" && (
+          <div className="border-b border-gray-900/10 px-4 pb-12">
+            <h2 className="text-lg font-semibold leading-7 text-gray-900">Informações pessoais</h2>
+            <p className="mt-1 leading-6 text-gray-600">
+              Seu e-mail <b>não</b> será exibido publicamente.
+            </p>
 
-          <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-            <div className="sm:col-span-4">
-              <label htmlFor="nome-usuario" className="block font-medium leading-6 text-gray-900">
-                Nome
-              </label>
-              <div className="mt-2">
-                <input
-                  id="nome-usuario"
-                  name="nomeUsuario"
-                  type="text"
-                  autoComplete="given-name"
-                  className="block w-full rounded-md border-0 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-lg sm:leading-6"
-                />
+            <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+              <div className="sm:col-span-4">
+                <label htmlFor="nome-usuario" className="block font-medium leading-6 text-gray-900">
+                  Nome
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="nome-usuario"
+                    name="nomeUsuario"
+                    type="text"
+                    autoComplete="given-name"
+                    className="block w-full rounded-md border-0 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-lg sm:leading-6"
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="sm:col-span-4">
-              <label htmlFor="email" className="block font-medium leading-6 text-gray-900">
-                Endereço de e-mail<span className="text-lg text-red-500">*</span>
-              </label>
-              <div className="mt-2">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  className="peer block w-full rounded-md border-0 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-lg sm:leading-6"
-                  placeholder="exemplo@email.com (obrigatório)"
-                  required
-                />
-                <p className="invisible mt-1 leading-6 text-red-500 peer-placeholder-shown:!invisible peer-invalid:visible">
-                  Por favor, digite um e-mail válido.
-                </p>
+              <div className="sm:col-span-4">
+                <label htmlFor="email" className="block font-medium leading-6 text-gray-900">
+                  Endereço de e-mail<span className="text-lg text-red-500">*</span>
+                </label>
+                <div className="mt-2">
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    className="peer block w-full rounded-md border-0 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-lg sm:leading-6"
+                    placeholder="exemplo@email.com (obrigatório)"
+                    required
+                  />
+                  <p className="invisible mt-1 leading-6 text-red-500 peer-placeholder-shown:!invisible peer-invalid:visible">
+                    Por favor, digite um e-mail válido.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="border-b border-gray-900/10 pb-12">
           <label htmlFor="local" className="px-4 text-lg font-semibold leading-7 text-gray-900">

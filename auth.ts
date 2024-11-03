@@ -16,5 +16,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
   },
-  providers: [Google, GitHub],
+  providers: [Google({ allowDangerousEmailAccountLinking: true }), GitHub],
 });

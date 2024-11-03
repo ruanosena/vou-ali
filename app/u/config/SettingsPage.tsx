@@ -28,12 +28,12 @@ export default function ConfigPage({ user }: ConfigPageProps) {
   async function onSubmit(data: UpdateProfileValues) {
     try {
       await updateProfile(data);
-      toast({ description: "Profile updated." });
+      toast({ description: "Perfil atualizado." });
       session.update();
     } catch (error) {
       toast({
         variant: "destructive",
-        description: "An error occurred. Please try again.",
+        description: "Ocorreu um erro. Por favor tente novamente.",
       });
     }
   }
