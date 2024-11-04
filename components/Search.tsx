@@ -178,6 +178,7 @@ export function Search({ location: locationProps, className, ...props }: Props) 
   useEffect(() => {
     if (!inputValue) {
       scheduled.current = ""; // flag to not-assign-response data but use initial results (lasts until other input)
+      lastSearch.current = ""; // updates lastSearch, thus allowing control-z after cleanup
       setResults(initialResults);
     }
   }, [initialResults, inputValue, searchDebounce]);
@@ -257,7 +258,7 @@ export function Search({ location: locationProps, className, ...props }: Props) 
         </Dialog>
       </div>
 
-      <div className="flex h-[calc(100vh_-_560px)] max-h-72 min-h-24 w-full shrink-0 flex-col items-center">
+      <div className="flex h-[calc(100vh_-_560px)] max-h-72 min-h-[4.5rem] w-full shrink-0 flex-col items-center">
         <h1
           className={cn(
             "mt-auto whitespace-nowrap font-mono text-5xl font-semibold tracking-wide text-secondary sm:text-6xl md:text-7xl",
@@ -287,6 +288,8 @@ export function Search({ location: locationProps, className, ...props }: Props) 
           </PopoverTrigger>
 
           <PopoverContent
+            avoidCollisions={false}
+            side="bottom"
             className="w-[var(--radix-popover-trigger-width)] rounded-t-none border-none bg-muted-foreground p-0 pb-3 text-popover"
             onOpenAutoFocus={(event) => event.preventDefault()}
             sideOffset={0}
